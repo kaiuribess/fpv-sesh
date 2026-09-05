@@ -1,116 +1,78 @@
 # FPV Sesh
 
-A local Windows drone-highlight editor. Choose recordings, review selected moments, and export a lightweight preview plus a 3840×2160 session edit. Original footage stays untouched. Normal use requires no cloud account, API key, subscription, or Codex installation.
+A local Windows FPV editing studio. Import a flying session, review complete moments, add your own music, and create a 4K master plus social versions. Original recordings stay untouched on your computer.
 
-Music editing is disabled in this version. The editor can retain source sound at your chosen level; silent recordings remain silent.
+## What is included
 
-## Install and launch
+- A dark creator studio with real footage cards, a large source preview, dedicated editing pages, and persistent render controls.
+- Four styles: energetic highlights, cinematic, freestyle tricks, and longer continuous flight.
+- Story or recording order; Auto or 15–180 seconds; adjustable recovery after linked motion bursts.
+- Keep/Exclude and exact source ranges, with reviewed boundaries preserved during final rendering.
+- Local music files, independent sound levels, track offset, fades, optional looping, and conservative beat timing.
+- A 3840×2160 master plus optional vertical 1080×1920, square 1080×1080, and portrait 1080×1350 versions.
+- A temporal flight map with motion estimates, optional internet-pretrained scene understanding, and user-confirmed labels.
+- Previews, verified outputs, pause/cancel, saved jobs, reusable segments, posters, and CSV edit decisions.
 
-Install **64-bit Python 3.12 with Tkinter** from [python.org](https://www.python.org/downloads/windows/). Open PowerShell in this repository folder and run:
+## Install and open
 
-```powershell
-& '.\setup.ps1'
-& '.\launch.cmd'
-```
+Install **64-bit Python 3.12 with Tkinter** from [python.org](https://www.python.org/downloads/windows/). Open PowerShell here, run `& '.\setup.ps1'`, then double-click **launch.cmd**.
 
-If Python is not on your path, supply its location:
+If needed, use `setup.ps1 -PythonPath 'C:\path\to\python.exe'`. `setup.ps1 -CheckOnly` checks an existing installation. Setup creates an isolated environment, installs pinned packages, and verifies the downloaded FFmpeg archive. Windows tar with 7z support is required. GPU acceleration depends on hardware/driver support; conventional CPU fallbacks are available. No driver or PowerShell policy changes are made.
 
-```powershell
-& '.\setup.ps1' -PythonPath 'C:\path\to\python.exe'
-```
+## Create and review
 
-Setup creates the isolated `.venv` environment, installs pinned packages from PyPI, and downloads the recorded FFmpeg 7.1.1 archive when needed. It verifies the recorded SHA256 before extraction. Windows `tar.exe` with 7z support is required. Setup does not install GPU drivers or change system settings or PowerShell policy. Use a PowerShell session permitted by your Windows policy.
+Add recordings, choose style/duration, optionally add music, and choose social shapes. Make a preview, inspect the moments and framing, then render the final files. The automatic workflow can create both stages in one job.
 
-After installation, double-click **launch.cmd** to open the application. To check an existing installation without installing anything:
+**Natural / 0%** is the default for faithful color. **Blur** preserves the full flight view over a blurred background; **Fit** uses bars; **Fill** deliberately crops with horizontal focus control. Social versions come directly from original source intervals.
 
-```powershell
-& '.\setup.ps1' -CheckOnly
-```
+Keep, Exclude, or Add exact range, then regenerate. Rendering a final preserves canonical shot order. Regeneration uses the job's recordings; changed input lists start a new session. Auto aims for about 75 seconds and may grow to retain explicitly kept passages in full. Numeric durations remain limits; short sessions are not padded with filler.
 
-GPU acceleration depends on the installed hardware and driver. Conventional rendering can fall back to CPU processing. Versions, download sources, licenses, and checksum limitations are recorded in `requirements-lock.txt`, `tools/dependencies.json`, and `tools/python-dependencies.json`.
+## Music
 
-## Make and review an edit
+Choose MP3, WAV, M4A, AAC, FLAC, OGG, or another decodable audio source. Full decode validation precedes rhythm analysis of up to 180 seconds after your track offset. Silence or unclear rhythm produces no invented beat grid.
 
-1. Add video files or choose a session folder. Folder selection includes compatible files directly inside that folder. No footage is included with the repository.
-2. Choose **Sesh Hype**, **Cinematic Flow**, or **Freestyle Focus**, and Auto, 30, 60, 90, or 120 seconds. Choose a color look, strength, enhancement quality, source-sound level, and export codec.
-3. Click **Make My Sesh**. The default workflow renders a 720p editing preview, then the final 4K file.
-4. Use **Play edit preview (720p)** to review the edit and **Play final 4K** to assess the finished picture in your installed Windows video player. **Open output** opens the job folder.
+Beat timing can extend a safe automatic exit by at most 0.8 seconds. It never shortens a trick, changes an exact reviewed/user-kept interval, crosses another selected passage, or ignores recovery just to hit a beat. Some cuts intentionally remain off-beat. Looping repeats the selected track tail with edge fades; it is not a professionally remixed seamless loop.
 
-Choose **Preview, then approve final** to review before final rendering. **Preview only** also stops after the preview. Once ready, click **Render final 4K**.
+Flight sound uses a lossless intermediate before music mixing. The final soundtrack is faded, peak-limited without makeup gain, encoded, decoded, and checked for timing and sample peaks. Details appear in music-mix.json. Removing music also removes a saved job's music choice.
 
-The **Review moments** table shows source intervals and estimated selection reasons. Double-click a row for details. Select rows with Ctrl or Shift, then use **Keep selected** or **Exclude selected**. **Regenerate edit** applies those choices and the current settings to that job's recordings. **Clear overrides** restores automatic selection. Pending changes must be regenerated before final rendering. Use **Make My Sesh** for a new job with a changed input list.
+## Online-pretrained flight context
 
-Selection uses motion, nearby-detail, exposure, and quality heuristics; it does not recognize or certify tricks. Persistent settling near the end of a recording can exclude arrival context automatically. Explicit **Keep** can restore a moment. Rotation alone is not treated as a crash.
+Optional **Places365 ResNet18** uses weights pretrained on approximately 1.8 million internet scene images. It runs locally on proxy frames and supplies broad surroundings such as park/open grass, forest, sky, water, or built areas. Ambiguous scenes remain uncertain.
 
-Automatic endings try to preserve 2.5 seconds of continued footage after a detected rotation or strong vertical-motion burst. Linked bursts extend that interval. Incomplete endings remain available for explicit review. Reviewed source boundaries stay exact, including longer continuous passages. Auto aims for about 75 seconds and may grow to preserve kept passages; numeric duration choices remain limits. Weak or short sessions may produce shorter edits instead of filler.
+Run **setup-ai.ps1** for the shared optional Torch runtime, then **setup-vision.ps1** for the approximately 46 MB scene model. **setup-vision.ps1 -CheckOnly** verifies an existing installation and performs a small inference check. The initial Torch download is approximately 2.9 GB. Without these optional files, motion-based flight maps still work.
 
-## Picture quality and optional AI
+**Scene recognition is not a trained freestyle-trick detector.** It cannot prove a powerloop, double flip, crash, or geographic 3D route. Temporal motion adds evidence; user-confirmed labels remain distinct. Local matching needs multiple confirmed examples from different source identities and reports an independent-flight check. Replaced source files cannot inherit old confirmations. The app does not scrape or retrain on every online FPV video. See [online-model research](docs/online-training.md) for the actual evaluation, provenance, and attribution.
 
-Auto uses conventional libplacebo scaling on Vulkan when available, with Lanczos and CPU encoding fallbacks. Lanczos is also directly selectable. The output preserves the source's shape with padding rather than stretching or silently cropping it. For example, a 1440×1080 source becomes a 2880×2160 picture inside the 3840×2160 canvas. A 4K output does not imply native 4K camera detail.
+## Picture quality
 
-HEVC is the default; H.264 offers broader playback compatibility. The render report identifies the actual backend, encoder, frame rate, and any fallback. GPU encoding is separate from AI enhancement.
+The landscape master remains 4K. Conventional scaling, high-quality encoding, and restrained color are defaults. A 1440×1080 recording becomes a 2880×2160 picture inside the 4K canvas; output dimensions cannot create native camera detail. HEVC Main10 is the default master format; H.264 is also available. Social files use H.264/AAC.
 
-An optional isolated CUDA Real-ESRGAN path uses native 2× restoration with a fixed 40% model / 60% conventional blend. It is slow and can smooth or alter fine texture, so Auto retains conventional scaling. To install or check its pinned environment and model downloads:
+Optional CUDA Real-ESRGAN uses native 2× restoration with a fixed 40% restored / 60% conventional blend. After setup-ai.ps1, run `python -m fpvsesh.cli validate-ai --input "C:\path\to\flight.mp4" --start 20 --seconds 2` using the project's .venv Python. It renders and verifies real frames and records the exact model, code, runtime, GPU, encoder, and probe identities. Inspect the sample before a long edit: successful inference does not certify natural texture or temporal quality.
 
-```powershell
-& '.\setup-ai.ps1'
-& '.\setup-ai.ps1' -CheckOnly
-```
+HDR/log interpretation, non-square-pixel normalization, gyro stabilization, synthetic slow motion, and general temporal restoration are not implemented in the main ingest path. The old Video2X adapter remains disabled.
 
-**AI setup alone does not enable AI on a fresh clone.** The application also requires a successful local video-validation record matching the model, code, runtime, and GPU. A supported command to create that record is not yet shipped in this repository. Machine-specific validation records are excluded from Git. Conventional editing remains available; an explicit AI request fails clearly when validation is unavailable.
+## Outputs and recovery
 
-The AI environment requires Windows 64-bit Python 3.12 and a compatible CUDA GPU. Dependencies and downloads are recorded in `requirements-ai-lock.txt`, `tools/ai-python-dependencies.json`, and `models/real-esrgan-cuda/manifest.json`. The older optional Video2X backend remains disabled after shutdown failures; `setup.ps1 -IncludeOptionalModels` installs its historical dependencies but does not enable it.
+Each job under output contains preview.mp4, final_4k.mp4 when rendered, and requested files under social-preview/ and social/. Supporting files include timeline.json, candidates.json, flight-map.json, edit.csv, settings.json, overrides.json, status.json, exports.json, report.md, verification records, posters, and publish-notes.md.
 
-HDR, unsupported color interpretations, and non-square-pixel media are rejected. Gyro stabilization, music selection, beat matching, synthetic slow motion, titles, and advanced temporal restoration are not enabled.
+Use final files for posting; previews are smaller editing copies. Platforms can recompress uploads. No social-account publishing occurs.
 
-## Pause, cancel, and resume
-
-Pause and Cancel are cooperative. Conventional processing stops at supported stage or segment boundaries. CUDA restoration checks between frames, allowing an in-progress frame to finish. Click **Resume** to continue a paused process.
-
-Cancel retains completed job files and cached segments; an incomplete AI segment is discarded. **Resume saved job…** reopens a job folder under `output` using its saved settings and checkpoints. Closing the interface during a render offers safe cancellation and waits for the renderer to stop.
-
-Completed cache entries are checked against source identities, settings, and file hashes before reuse. Regenerating a changed edit moves older canonical videos to `.previous.mp4` so they are not presented as the new result.
-
-## Outputs and storage
-
-Each job under `output` contains its preview and final video when rendered, along with:
-
-- `timeline.json` and `candidates.json`: selections, source intervals, timing, and review information.
-- `settings.json`, `overrides.json`, and `status.json`: applied settings and recovery state.
-- `report.md` and verification records: render choices, warnings, and technical checks.
-
-The editor reads selected footage and writes application-owned job files. It does not upload videos or analysis data. A 40 GiB application-cache budget limits generated cache storage; automatic eviction is restricted to completed entries in `cache/segments`. Proxies count toward the budget but are not automatically evicted by that cleanup. Source recordings and job outputs are outside cache eviction.
-
-**Repository scope:** Git contains application code, tests, setup scripts, dependency manifests, and license notices. Original footage, generated videos, job data, caches, logs, Python environments, downloaded tool binaries, and model weights stay local. Setup recreates required folders and downloads dependencies. A fresh clone contains no completed edits or machine-specific benchmark records.
+Pause/cancel takes effect at supported stage/segment boundaries; CUDA restoration checks between frames. Cancel retains completed cache entries. Resume a job folder to continue. Changed edits retire old canonical videos to .previous.mp4. Sources and job outputs are outside the 40 GiB segment-cache eviction policy.
 
 ## Command line and tests
 
-Run commands from the repository folder after setup:
+Use the Python executable under .venv/Scripts from this folder:
 
-```powershell
-# Preview recordings from a folder.
-& '.\.venv\Scripts\python.exe' -m fpvsesh.cli make --folder '.\input' --preview-only
+- `python -m fpvsesh.cli make --folder input --music "C:\path\to\track.mp3" --social-formats vertical,square,portrait --framing blur --preview-only`
+- `python -m fpvsesh.cli make --job output/YOUR-JOB` resumes saved settings and reviewed order.
+- `python -m fpvsesh.cli make --job output/YOUR-JOB --no-music --preview-only` removes saved music.
+- `python -m fpvsesh.cli make --help` lists all options.
+- `python -m pytest -q` runs regression tests.
 
-# Make a preview and final from selected files.
-& '.\.venv\Scripts\python.exe' -m fpvsesh.cli make `
-  --input 'C:\path\to\flight-one.mp4' `
-  --input 'C:\path\to\flight-two.mp4' `
-  --duration auto --style hype --look natural --strength 0 --quality auto
+Tests generate media and check timing, music, framing, cache recovery, source preservation, UI/CLI settings, and model gating. They do not certify artistic quality or named-trick accuracy. Actual-camera and optional-model checks are recorded locally.
 
-# Resume a saved job.
-& '.\.venv\Scripts\python.exe' -m fpvsesh.cli make --job '.\output\YOUR-JOB-FOLDER'
+## Research and repository scope
 
-# See all current options.
-& '.\.venv\Scripts\python.exe' -m fpvsesh.cli make --help
+Read the [FPV research](docs/research-fpv.md), [music notes](docs/research-music.md), [social guidance](docs/research-social.md), [online-model evaluation](docs/online-training.md), and [UI design brief](docs/ui-design.md).
 
-# Run regression tests; media fixtures are generated locally.
-& '.\.venv\Scripts\python.exe' -m unittest discover -s tests -v
-```
-
-To regenerate with saved review choices, add `--regenerate --overrides '.\output\YOUR-JOB-FOLDER\ui-overrides.json'`. The basic override format is:
-
-```json
-{"keep": ["candidate-id"], "exclude": ["another-candidate-id"]}
-```
-
-Tests cover media probing, rates and timestamps, source preservation, selection boundaries, cache recovery, CLI operation, and pause/cancel behavior. CUDA control tests use substitutes for the model and native processes; they do not validate GPU inference or visual quality.
+Git contains code, tests, setup scripts, manifests, and license notices. Footage, music, renders, jobs, diagnostics, environments, downloaded tools, and weights stay local. Upstream models/libraries keep their separate licenses. Ordinary editing requires no account, API key, subscription, or cloud inference.

@@ -213,13 +213,17 @@ def guard_recovery_end(rows, start, end, duration, hold=2.5):
     return protected_end if protected_end <= duration + 1e-6 else None
 
 
-def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None):
+def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None, recovery=2.5, max_length=None):
+    if not math.isfinite(recovery) or not .5 <= recovery <= 8:
+        raise ValueError("Recovery must be between 0.5 and 8 seconds")
     candidates = []
     reviewed_intervals = reviewed_intervals or []
     sources = {a["source"]:a for a in analyses}
     for reviewed in reviewed_intervals:
         if reviewed["source"] not in sources or not (0 <= reviewed["start"] < reviewed["end"] <= sources[reviewed["source"]]["duration"]):
             raise ValueError("Reviewed interval is outside the analyzed source bounds")
+        if reviewed.get("source_identity") and reviewed["source_identity"] != sources[reviewed["source"]]["identity"]:
+            raise ValueError("A reviewed recording has changed since its ranges were saved; review the replacement footage again")
     for a in analyses:
         rows = a["rows"]
         arrival = a.get("terminal_arrival") or terminal_arrival(rows,a["duration"])
@@ -228,7 +232,9 @@ def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None):
         smooth = np.convolve(motion, np.ones(7) / 7, mode="same")
         rotations = np.abs([r["rotation"] for r in rows])
         scale = max(float(np.percentile(motion, 85)), 1)
-        length = min({"hype": 7.2, "cinematic": 10.0, "freestyle": 9.5}[style], a["duration"]-.4)
+        length = min({"hype": 7.2, "cinematic": 10.0, "freestyle": 9.5, "flow": 18.0}[style], a["duration"]-.4)
+        if max_length is not None:
+            length = min(length, max(3, max_length - recovery))
         centers = list(np.arange(length / 2 + .2, a["duration"] - 2, 3.5))
         if not centers and a["duration"] >= 3.4:
             centers = [a["duration"] / 2]
@@ -255,14 +261,18 @@ def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None):
                 start -= .5
             recovery_incomplete = False
             if not reviewed:
-                guarded_end = guard_recovery_end(rows, start, end, a["duration"] - .1)
+                guarded_end = guard_recovery_end(rows, start, end, a["duration"] - .1, hold=recovery)
                 recovery_incomplete = guarded_end is None
                 if guarded_end is not None:
                     end = guarded_end
-            if end - start < 3 or (round(start), round(end)) in seen:
+            if not reviewed and (end - start < 3 or (round(start), round(end)) in seen):
                 continue
             seen.add((round(start), round(end)))
             chunk = [r for r in rows if start <= r["t"] < end]
+            if not chunk:
+                # Exact user ranges may be shorter than the analysis sampling
+                # interval. Use nearby evidence without changing their bounds.
+                chunk = [min(rows, key=lambda row: abs(row["t"] - center))]
             m = np.array([r["motion"] for r in chunk])
             idle = float(np.mean(m < .22))
             mean = lambda k: float(np.mean([r[k] for r in chunk]))
@@ -270,7 +280,7 @@ def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None):
             sharp = min(math.log1p(mean("sharpness")) / 6, 1)
             exposure = max(0, 1 - mean("black") * 1.8 - max(0, mean("white") - .12) * 2)
             turn = min(float(np.percentile([abs(r["rotation"]) for r in chunk], 80)) / 10, 1)
-            activity_weight, turn_weight = {"hype":(18,8), "cinematic":(18,4), "freestyle":(20,20)}[style]
+            activity_weight, turn_weight = {"hype":(18,8), "cinematic":(18,4), "freestyle":(20,20), "flow":(18,6)}[style]
             proximity = float(np.mean([r.get("proximity",0)*r.get("parallax_confidence",0) for r in chunk]))
             score = activity_weight * activity + 20 * sharp + 20 * exposure + 10 * min(mean("contrast") / .2, 1) + turn_weight * turn + 30*proximity - 65 * idle
             if style == "cinematic": score += 8 * (1-turn)
@@ -292,18 +302,18 @@ def candidates_from_analysis(analyses, style="hype", reviewed_intervals=None):
             elif proximity > .28:
                 reason = "close structure / weaving estimate from residual foreground motion; approach and exit retained"
             if reviewed:
-                reason = reviewed["reason"] + "; editorial review from sampled source frames"
+                reason = reviewed.get("reason", "User selected exact interval") + "; exact reviewed source boundaries"
             elif recovery_incomplete:
                 reason = "recording ends before estimated maneuver follow-through fits; excluded automatically, explicit keep remains available"
             elif not arrival_estimate:
-                reason += "; at least 2.5 seconds retained after the last detected motion burst"
+                reason += f"; at least {recovery:g} seconds retained after the last detected motion burst"
             seq = [chunk[int((len(chunk)-1)*f)]["hash"] for f in (.2, .5, .8)]
             cid = hashlib.sha256(f"{a['identity']}:{start:.4f}:{end:.4f}".encode()).hexdigest()[:12]
             candidates.append({"id": cid, "source": a["source"], "identity": a["identity"], "start": round(start, 6), "end": round(end, 6),
                                "score": round(score, 3), "confidence": reviewed.get("confidence",.8) if reviewed else .58, "reason": reason, "selected": False, "unusable": unusable,
                                "review_key": reviewed.get("key") if reviewed else None,
                                "recovery_incomplete": recovery_incomplete,
-                               "recovery_hold_seconds": None if reviewed else 2.5,
+                               "recovery_hold_seconds": None if reviewed else recovery,
                                "motion": round(mean("motion"), 4), "rotation": round(turn, 4), "idle": round(idle, 4), "luma": mean("luma"),
                                "dx_in": float(np.mean([r["dx"] for r in chunk[:6]])), "dx_out": float(np.mean([r["dx"] for r in chunk[-6:]])),
                                "end_rotation": end_rotation, "following_idle": following_idle,

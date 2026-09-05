@@ -34,7 +34,7 @@ def _detected_gpu() -> dict:
     return result
 
 
-def _tool_hashes() -> dict:
+def _tool_hashes(*, ffmpeg=None, ffprobe=None) -> dict:
     """Compare actual binaries and model files with the saved local benchmark."""
     paths = [FFMPEG, FFPROBE, VIDEO2X,
              VIDEO2X.parent / 'models/realesrgan/realesrgan-plus-x4.bin',
@@ -42,25 +42,30 @@ def _tool_hashes() -> dict:
     paths += sorted(VIDEO2X.parent.glob('*.dll'))
     hashes = {}
     for path in paths:
+        actual_path = path
+        if path == FFMPEG and ffmpeg is not None:
+            actual_path = Path(ffmpeg)
+        elif path == FFPROBE and ffprobe is not None:
+            actual_path = Path(ffprobe)
         try:
-            with path.open('rb') as handle:
+            with actual_path.open('rb') as handle:
                 hashes[str(path.relative_to(ROOT)).replace('\\', '/')] = hashlib.file_digest(handle, 'sha256').hexdigest()
         except OSError:
             hashes[str(path.relative_to(ROOT)).replace('\\', '/')] = None
     return hashes
 
 
-def backend_status() -> dict:
+def backend_status(*, ffmpeg=None, ffprobe=None) -> dict:
     """Gate recorded measurements by the exact GPU, driver, and tool hashes."""
     gpu = _detected_gpu()
     from .cuda_backend import status as cuda_status
-    cuda = cuda_status(gpu)
+    cuda = cuda_status(gpu, ffmpeg=ffmpeg, ffprobe=ffprobe)
     try:
         saved = json.loads(BENCHMARK_SIGNATURE.read_text(encoding='utf8'))
     except (OSError, ValueError):
         saved = {}
     matches_hardware = bool(saved.get('gpu')) and gpu == saved['gpu']
-    matches_tools = bool(saved.get('tool_sha256')) and _tool_hashes() == saved['tool_sha256']
+    matches_tools = bool(saved.get('tool_sha256')) and _tool_hashes(ffmpeg=ffmpeg, ffprobe=ffprobe) == saved['tool_sha256']
     matches_tested = matches_hardware and matches_tools
     measured = saved.get('measurements', {}) if matches_tested else {}
     warnings = ([
@@ -214,11 +219,11 @@ def enhance_segment(input_path: Path, output_path: Path, settings: dict, log=pri
     temp_files, warnings, stages = [], [], []
     actual_source, actual_start, actual_quality = source_path, start, quality
     if quality == 'ai':
-        if not backend_status()['ai_available']:
+        if not backend_status(ffmpeg=ffmpeg, ffprobe=ffprobe)['ai_available']:
             raise RuntimeError('AI enhancement is not validated for the current environment; choose conventional scaling or run its local validation first.')
         from .cuda_backend import render as render_cuda
         fit = _fit_dimensions(source, width, height)
-        configuration = {**settings, 'ffmpeg': str(ffmpeg), 'start': start, 'duration': duration,
+        configuration = {**settings, 'ffmpeg': str(ffmpeg), 'ffprobe': str(ffprobe), 'start': start, 'duration': duration,
                          'frames': frames, 'fps': fps, 'width': width, 'height': height,
                          'rate_conversion': bool(settings.get('vfr')) or Fraction(source['avg_frame_rate']) != rate}
         try:

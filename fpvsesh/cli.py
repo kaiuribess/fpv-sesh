@@ -12,31 +12,72 @@ from .media import probe, inspect_timestamps, hardware_diagnostics, fps_decision
 from .planner import plan
 from .render import render_timeline, make_audio, ensure_space
 from .control import Cancelled
+from .settings import DEFAULTS, resolve_settings
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULTS = {"duration": "auto", "style": "hype", "look": "punch", "strength": .55, "quality": "auto", "audio_level": .4, "codec": "hevc"}
 MEDIA_EXTENSIONS = {".mp4", ".mov", ".mkv", ".avi", ".m4v", ".mts", ".m2ts"}
 
 def parser():
-    p = argparse.ArgumentParser(description="FPV Sesh — private local multi-clip highlights, no music")
+    p = argparse.ArgumentParser(description="FPV Sesh — local FPV highlights, music and social exports")
     sub = p.add_subparsers(dest="command", required=True)
     m = sub.add_parser("make")
     m.add_argument("--input", action="append")
     m.add_argument("--folder")
     m.add_argument("--job")
-    m.add_argument("--duration", choices=["auto", "30", "60", "90", "120"])
-    m.add_argument("--style", choices=["hype", "cinematic", "freestyle"])
+    m.add_argument("--duration", choices=["auto", "15", "30", "60", "90", "120", "180"])
+    m.add_argument("--style", choices=["hype", "cinematic", "freestyle", "flow"])
     m.add_argument("--look", choices=["punch", "natural", "cinematic"])
     m.add_argument("--strength", type=float)
     m.add_argument("--quality", choices=["auto", "lanczos", "ai"])
     m.add_argument("--audio-level", type=float)
     m.add_argument("--codec", choices=["hevc", "h264"])
+    music = m.add_mutually_exclusive_group()
+    music.add_argument("--music", help="Local music file to mix under the edit")
+    music.add_argument("--no-music", action="store_true", help="Remove music, including saved-job music")
+    m.add_argument("--music-level", type=float)
+    m.add_argument("--music-offset", type=float, help="Start music this many seconds into the track")
+    m.add_argument("--music-fade", type=float)
+    m.add_argument("--music-end", choices=["fade", "loop"])
+    m.add_argument("--beat-sync", action=argparse.BooleanOptionalAction, default=None)
+    m.add_argument("--social-formats", help="vertical,square,portrait or none; 4K master is always included")
+    m.add_argument("--framing", choices=["blur", "fit", "fill"])
+    m.add_argument("--focus-x", type=float)
+    m.add_argument("--edit-order", choices=["story", "chronological"])
+    m.add_argument("--recovery", type=float, help="Seconds of follow-through after motion bursts (0.5–8)")
     m.add_argument("--overrides")
     m.add_argument("--preview-only", action="store_true")
     m.add_argument("--regenerate", action="store_true")
     m.add_argument("--analyze-only", action="store_true")
     sub.add_parser("diagnose")
+    validation = sub.add_parser("validate-ai", help="Render and verify a local CUDA sample before enabling AI")
+    validation.add_argument("--input", required=True)
+    validation.add_argument("--start", type=float, default=0)
+    validation.add_argument("--seconds", type=float, default=2)
     return p
+
+
+def merge_reviewed_keeps(overrides, candidates, reviews):
+    """Review defaults can add keeps; explicit user exclusions take precedence.
+
+    Existing contradictory explicit keep/exclude choices remain intact so the
+    planner reports them instead of silently choosing for the user.
+    """
+    keys = set()
+    if not isinstance(reviews, list):
+        raise ValueError("Reviewed ranges must be a list with unique nonempty keys")
+    for review in reviews:
+        key = review.get("key") if isinstance(review, dict) else None
+        if not isinstance(key, str) or not key.strip() or key in keys:
+            raise ValueError("Each reviewed range must have a unique nonempty string key; repair or re-create the saved ranges")
+        keys.add(key)
+    result = dict(overrides)
+    reviewed_keep = {review.get("key") for review in reviews if review.get("keep") is True}
+    if reviewed_keep:
+        excluded = set(result.get("exclude", []))
+        result["keep"] = list(dict.fromkeys(result.get("keep", []) +
+                              [candidate["id"] for candidate in candidates
+                               if candidate.get("review_key") in reviewed_keep and candidate["id"] not in excluded]))
+    return result
 
 def make(args):
     for d in ["input", "music", "output", "cache", "models", "logs"]: (ROOT / d).mkdir(exist_ok=True)
@@ -76,8 +117,9 @@ def make(args):
     try:
         control.unlink(missing_ok=True)
         saved = json.loads((job / "settings.json").read_text(encoding="utf-8")) if (job / "settings.json").exists() else {}
-        settings = {k: getattr(args,k) if getattr(args,k) is not None else saved.get(k,v) for k,v in DEFAULTS.items()}
-        if not 0 <= settings["strength"] <= 1 or not 0 <= settings["audio_level"] <= 1: raise ValueError("Strength and audio level must be between 0 and 1")
+        previous_sources = json.loads((job / "sources.json").read_text(encoding="utf-8")) if (job / "sources.json").exists() else []
+        previous_identities = {p["source"]: p["sha256"] for p in previous_sources}
+        settings = resolve_settings(args, saved)
         paths = args.input or []
         if args.folder:
             folder = Path(args.folder).expanduser().resolve(strict=True)
@@ -86,7 +128,24 @@ def make(args):
         if not paths: raise ValueError("Choose at least one video or place clips in input")
         paths = list(dict.fromkeys(str(Path(p).expanduser().resolve(strict=True)) for p in paths))
         if any(Path(p).is_relative_to(ROOT / "output") or Path(p).is_relative_to(ROOT / "cache") for p in paths): raise ValueError("Use original footage, not FPV Sesh outputs or cache files")
-        settings.update({"inputs": paths, "music": None, "stabilization": "disabled: no validated gyro synchronization or calibration"})
+        music_info = None
+        if settings["music"]:
+            music_path = Path(settings["music"]).expanduser().resolve(strict=True)
+            if music_path.is_relative_to(ROOT / "output") or music_path.is_relative_to(ROOT / "cache"):
+                raise ValueError("Choose an original music file outside FPV Sesh/output and cache; copy the track into music/ or another folder first so generated audio cannot overwrite it")
+            from .music import analyze_music
+            event("music", 0, "Checking the music file and finding clear rhythm accents")
+            music_info = analyze_music(settings["music"], ROOT / "cache", settings["music_offset"], checkpoint)
+            # Cache diagnostics are not editing decisions and must not retire
+            # a completed export when an unchanged soundtrack is reused.
+            music_info.pop("cache_hit", None)
+            settings["music"] = music_info["path"]
+            settings["music_sha256"] = music_info["sha256"]
+            save_json(job / "music-analysis.json", music_info)
+        else:
+            (job / "music-analysis.json").unlink(missing_ok=True)
+            (job / "music-mix.json").unlink(missing_ok=True)
+        settings.update({"inputs": paths, "stabilization": "disabled: no validated gyro synchronization or calibration"})
         save_json(job / "settings.json", settings)
         event("diagnostics", 0, "Inspecting hardware and source identities")
         ensure_space(ROOT, 5 * 2**30)
@@ -140,14 +199,37 @@ def make(args):
             analyses.append(analyze(p, ROOT / "cache", event, checkpoint))
         # Split recordings are only flagged; filename sequence alone never proves continuity.
         save_json(job / "analysis-summary.json", [{k:v for k,v in a.items() if k != "rows"} for a in analyses])
+        from .flightmap import build_flight_map, annotate_candidates
+        labels_path = job / "flight-labels.json"
+        labels = json.loads(labels_path.read_text(encoding="utf-8")) if labels_path.exists() else []
+        flight_map = build_flight_map(analyses, labels, ROOT / "cache", event, checkpoint)
+        save_json(job / "flight-map.json", flight_map)
         review_path = job / "reviewed-intervals.json"
         reviews = json.loads(review_path.read_text(encoding="utf-8")) if review_path.exists() else []
-        candidates = candidates_from_analysis(analyses, settings["style"], reviews)
+        current_identities = {p["source"]: p["sha256"] for p in probes}
+        for reviewed in reviews:
+            # Migrate saved ranges against the previously verified source,
+            # never silently rebind them when a recording is replaced in place.
+            if not reviewed.get("source_identity"):
+                reviewed["source_identity"] = previous_identities.get(reviewed["source"], current_identities.get(reviewed["source"]))
+        if reviews:
+            save_json(review_path, reviews)
+        candidates = candidates_from_analysis(analyses, settings["style"], reviews, settings["recovery"],
+                                             None if settings["duration"] == "auto" else int(settings["duration"]))
+        annotate_candidates(candidates, analyses, ROOT / "cache" / "learning")
         overrides_path = Path(args.overrides) if args.overrides else job / "overrides.json"
         overrides = json.loads(overrides_path.read_text(encoding="utf-8")) if overrides_path.exists() else {}
+        overrides = merge_reviewed_keeps(overrides, candidates, reviews)
         save_json(job / "overrides.json", overrides)
         fps = choose_fps(probes)
-        timeline = plan(candidates, probes, fps, settings["duration"], settings["style"], overrides)
+        timeline = plan(candidates, probes, fps, settings["duration"], settings["style"], overrides, settings["edit_order"])
+        if music_info:
+            if settings["beat_sync"] and settings["music_level"] > 0:
+                from .pacing import favor_beats
+                timeline = favor_beats(timeline, probes, analyses, music_info, settings["recovery"])
+            timeline["music"] = music_info
+            timeline["music_status"] = f"Local music: {Path(music_info['path']).name}"
+            timeline["warnings"].extend(music_info.get("warnings", []))
         timeline["fps_decision"] = fps_decision(probes)
         timeline["warnings"].extend(warnings)
         timeline["input_notes"] = "Sequential filenames may be separate flights or split recordings; no continuity inferred from names. Gyro stabilization skipped without validated gyro data/calibration."
@@ -155,28 +237,43 @@ def make(args):
         artifact_state = job / "artifact-state.json"
         old = json.loads(artifact_state.read_text(encoding="utf-8")) if artifact_state.exists() else {}
         if old.get("fingerprint") != fingerprint:
-            for filename in ("final_4k.mp4", "preview.mp4"):
+            for filename in ("final_4k.mp4", "preview.mp4", *[f"{folder}/{code}.mp4" for folder in ("social", "social-preview") for code in ("vertical", "square", "portrait")]):
                 original = job / filename
                 if original.exists(): original.replace(original.with_name(original.stem + ".previous.mp4"))
-        save_json(artifact_state, {"fingerprint":fingerprint,"music":None})
+        save_json(artifact_state, {"fingerprint":fingerprint,"music":settings["music"]})
         save_json(job / "timeline.json", timeline)
         save_json(job / "candidates.json", {"candidates": candidates, "coverage": "entire session at 6 motion samples/sec, 12 fps scene detection proxy", "overrides": overrides})
-        event("timeline", 1, f"Selected {len(timeline['shots'])} distinct moments, {timeline['duration']:.2f}s from {len(probes)} clips. No music.")
+        from .edit_package import write_edit_package
+        write_edit_package(timeline, job)
+        event("timeline", 1, f"Selected {len(timeline['shots'])} distinct moments, {timeline['duration']:.2f}s from {len(probes)} clips. {timeline['music_status']}.")
         if args.analyze_only:
             event("complete", 1, "Full-session analysis and reviewable timeline ready")
             return
-        audio = make_audio(timeline, probes, job, settings["audio_level"], event, checkpoint)
+        audio = make_audio(timeline, probes, job, settings["audio_level"], event, checkpoint, lossless=bool(music_info))
         if audio is None: (job / "source-audio.m4a").unlink(missing_ok=True)
+        if music_info:
+            from .music import mix_music
+            event("audio", 0, "Mixing music with flight sound and fading the edit")
+            audio = mix_music(audio, music_info, job, timeline["duration"], settings["music_level"],
+                              settings["music_fade"], settings["music_end"], checkpoint)
         preview = render_timeline(timeline, probes, settings, job, ROOT / "cache", event, checkpoint, preview=True)
+        from .social import export_social
+        social_preview = export_social(timeline, probes, settings, job, ROOT / "cache", event, checkpoint, preview=True) if settings["social_formats"] else {}
         final = None
+        social_final = {}
         if not args.preview_only:
             checkpoint()
             final = render_timeline(timeline, probes, settings, job, ROOT / "cache", event, checkpoint)
+            social_final = export_social(timeline, probes, settings, job, ROOT / "cache", event, checkpoint) if settings["social_formats"] else {}
+        save_json(job / "exports.json", {"preview": preview["path"], "master": final["path"] if final else None,
+                                         "social_previews": social_preview, "social": social_final})
         # Compare source identities after processing; originals are never written.
         for p in probes:
             stat = Path(p["source"]).stat()
             if stat.st_size != p["size_bytes"] or stat.st_mtime_ns != p["mtime_ns"]: raise RuntimeError(f"Source changed externally during processing: {p['filename']}")
         report = build_report(timeline, settings, probes, diagnostics, preview, final)
+        if social_final or social_preview:
+            report += "\n## Social exports\n" + "\n".join(f"- {code}: {item['path']}" for code, item in (social_final or social_preview).items()) + "\n"
         (job / "report.md").write_text(report, encoding="utf-8")
         event("complete", 1, f"Finished {'4K reel and preview' if final else 'preview'}: {job}")
     except Cancelled as e:
@@ -188,7 +285,7 @@ def make(args):
         lock.close()
 
 def build_report(timeline, settings, probes, diagnostics, preview, final):
-    lines = ["# FPV Sesh run report", "", f"{len(timeline['shots'])} distinct shots • {timeline['duration']:.3f} seconds • {timeline['fps']} fps • no music", "",
+    lines = ["# FPV Sesh run report", "", f"{len(timeline['shots'])} distinct shots • {timeline['duration']:.3f} seconds • {timeline['fps']} fps • {timeline.get('music_status', 'No music selected')}", "",
              f"Style: {settings['style']}; look: {settings['look']} at {settings['strength']:.0%}; original-audio level: {settings['audio_level']:.0%}.",
              "", "Sources were decoded throughout and analyzed across their entire duration. Originals retained unchanged (size/mtime checked after run, complete SHA256 recorded before run).",
              "", "Source intervals and frame mappings are in timeline.json; all candidates and selection/rejection reasons are in candidates.json.",
@@ -207,15 +304,17 @@ def build_report(timeline, settings, probes, diagnostics, preview, final):
             lines += ["- Fallback warning: " + w for w in r.get('warnings',[])]
     lines += ["", "## Verification", "Preview: " + str(preview["verification"]["passed"])]
     if final: lines += ["Final: " + str(final["verification"]["passed"])]
-    lines += ["Full decode, frame count, rational frame rate, output dimensions, presentation timestamps and black-gap diagnostics saved separately. Original audio is decoded, trimmed, resampled, faded and encoded once, then muxed into both outputs. No invented drone sound. Loudness measurement is saved in audio-loudness.txt when audio exists.",
+    lines += ["Full decode, frame count, rational frame rate, output dimensions, presentation timestamps and black-gap diagnostics saved separately. Original audio is decoded, trimmed, resampled and faded; music mixes use a lossless flight-sound intermediate before final AAC encoding. Music-mix details are in music-mix.json when music is selected. No invented drone sound.",
               "", f"Hardware: {diagnostics.get('gpu_name','see diagnostics')}; {diagnostics.get('vram_mib','unknown')} MiB VRAM; CPU and RAM details in logs/diagnostics.json.",
-              "", "## Practical limits", "Selection uses motion, quality and image similarity heuristics. It cannot certify complete tricks or a semantic crash classification. Rotation is never itself treated as a crash. Gyro stabilization, synthetic slow motion, music timing and temporal restoration are disabled. Fixed conservative per-shot color keeps sunset warmth; fully clipped sun detail cannot be recovered. Unknown color tags are explicitly reported. No claim of full-motion human review is made by the application.",
+              "", "## Practical limits", "Selection uses motion, quality and image similarity heuristics. It cannot certify complete tricks or a semantic crash classification. Rotation is never itself treated as a crash. Gyro stabilization, synthetic slow motion and temporal restoration are disabled. Music timing extends only safe automatic exits toward clear detected beats; exact reviewed passages are preserved. Fully clipped sun detail cannot be recovered. Unknown color tags are explicitly reported. No claim of full-motion human review is made by the application.",
               "", *["- " + w for w in timeline["warnings"]], "", "Installed sources, licenses and benchmarks: application logs/backend-* and dependency records. This is a local editor and no media or metadata is uploaded."]
     return "\n".join(lines) + "\n"
 
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
     args = parser().parse_args()
     if args.command == "diagnose":
         data = hardware_diagnostics()
@@ -225,6 +324,10 @@ def main():
         except (ImportError, AttributeError): pass
         save_json(ROOT / "logs" / "diagnostics.json", data)
         print(json.dumps(data, indent=2))
+    elif args.command == "validate-ai":
+        from .ai_validation import validate_ai
+        result = validate_ai(args.input, args.start, args.seconds, lambda message: print(json.dumps({"stage": "ai-validation", "message": message}), flush=True))
+        print(json.dumps(result, indent=2))
     else: make(args)
 
 if __name__ == "__main__":

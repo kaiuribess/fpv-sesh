@@ -75,6 +75,31 @@ class RecoveryEndTests(unittest.TestCase):
         self.assertFalse(result["recovery_incomplete"])
         self.assertIsNone(result["recovery_hold_seconds"])
 
+    def test_reviewed_bounds_cannot_transfer_to_replaced_recording(self):
+        data = analyzed(feature_rows(duration=12, rotation=35))
+        data["identity"] = "original-content-hash"
+        reviewed = {"source": data["source"], "source_identity": data["identity"],
+                    "start": 3.25, "end": 9.75, "key": "confirmed-double-flip"}
+        candidates = analysis.candidates_from_analysis([data], reviewed_intervals=[reviewed])
+        confirmed = next(c for c in candidates if c.get("review_key") == reviewed["key"])
+        self.assertEqual((confirmed["start"], confirmed["end"]), (3.25, 9.75))
+        data["identity"] = "replacement-content-hash"
+        with self.assertRaisesRegex(ValueError, "recording has changed"):
+            analysis.candidates_from_analysis([data], reviewed_intervals=[reviewed])
+
+    def test_short_exact_ranges_survive_automatic_minimum_and_deduplication(self):
+        data = analyzed(feature_rows(duration=12, rotation=35))
+        ranges = [{"source": data["source"], "start": start, "end": end, "key": key}
+                  for start, end, key in [(1.25, 3.5, "short"), (1.3, 3.6, "nearby"),
+                                          (5.02, 5.05, "between-analysis-samples")]]
+        candidates = analysis.candidates_from_analysis([data], reviewed_intervals=ranges)
+        reviewed = {c["review_key"]: c for c in candidates if c.get("review_key")}
+        self.assertEqual(set(reviewed), {r["key"] for r in ranges})
+        for expected in ranges:
+            candidate = reviewed[expected["key"]]
+            self.assertEqual((candidate["start"], candidate["end"]), (expected["start"], expected["end"]))
+            self.assertTrue(candidate["hash_sequence"])
+
 
 class KeptDurationTests(unittest.TestCase):
     def test_auto_preserves_kept_intervals_over_75_seconds_without_filler_or_trimming(self):

@@ -29,22 +29,27 @@ class CudaBackendTests(unittest.TestCase):
         self.stack.enter_context(patch.object(cuda_backend, "ROOT", self.root))
         self.stack.enter_context(patch.object(cuda_backend, "PYTHON", self.python))
         self.stack.enter_context(patch.object(cuda_backend, "VALIDATION", self.validation))
-
-    def test_validation_requires_matching_code_model_profile_and_hardware(self):
-        relatives = ["fpvsesh/ai_models.py", "fpvsesh/ai_worker.py",
+        self.ffmpeg = self.root / "ffmpeg.exe"
+        self.ffprobe = self.root / "ffprobe.exe"
+        self.ffmpeg.write_bytes(b"fake encoder")
+        self.ffprobe.write_bytes(b"fake probe")
+        self.stack.enter_context(patch.object(cuda_backend, "locate_tools", return_value=(str(self.ffmpeg), str(self.ffprobe))))
+        self.relatives = ["fpvsesh/ai_models.py", "fpvsesh/ai_worker.py",
                      "models/real-esrgan-cuda/RealESRGAN_x2plus.pth",
                      ".venv-ai/Lib/site-packages/torch/version.py"]
-        for relative in relatives:
+        for relative in self.relatives:
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(relative.encode())
+
+    def test_validation_requires_matching_code_model_profile_and_hardware(self):
         gpu = {"name": "test GPU", "driver_version": "test driver", "uuid": "test identity"}
         self.assertFalse(cuda_backend.status(gpu)["available"])
         record = {"passed": True, "signature": cuda_backend.signature(), "gpu": gpu, "fps": 2.5}
         self.validation.write_text(json.dumps(record), encoding="utf-8")
         self.assertTrue(cuda_backend.status(gpu)["available"])
         self.assertEqual(cuda_backend.status(gpu)["fps"], 2.5)
-        for relative in relatives:
+        for relative in self.relatives:
             with self.subTest(changed_file=relative):
                 path = self.root / relative
                 original = path.read_bytes()
@@ -53,10 +58,51 @@ class CudaBackendTests(unittest.TestCase):
                 self.assertIsNone(cuda_backend.status(gpu)["fps"])
                 path.write_bytes(original)
         self.assertFalse(cuda_backend.status({**gpu, "driver_version": "different"})["available"])
+        original_encoder = self.ffmpeg.read_bytes()
+        self.ffmpeg.write_bytes(b"different encoder")
+        self.assertFalse(cuda_backend.status(gpu)["available"])
+        self.ffmpeg.write_bytes(original_encoder)
         with patch.object(cuda_backend, "PROFILE", {**cuda_backend.PROFILE, "ai_blend": .9}):
             self.assertFalse(cuda_backend.status(gpu)["available"])
         self.python.unlink()
         self.assertFalse(cuda_backend.status(gpu)["available"])
+
+    def test_explicit_tool_overrides_require_their_own_matching_hashes(self):
+        gpu = {"name": "test GPU", "driver_version": "test driver", "uuid": "test identity", "vram_mib": 8192}
+        record = {"passed": True, "signature": cuda_backend.signature(), "gpu": gpu, "fps": 2.5}
+        self.validation.write_text(json.dumps(record), encoding="utf-8")
+        custom = self.root / "custom tools"
+        custom.mkdir()
+        overrides = {"ffmpeg": custom / "ffmpeg.exe", "ffprobe": custom / "ffprobe.exe"}
+        for name, path in overrides.items():
+            path.write_bytes(getattr(self, name).read_bytes())
+        # A copy of the exact validated binaries is safe; their location is immaterial.
+        self.assertTrue(cuda_backend.status(gpu, **overrides)["available"])
+        for name, path in overrides.items():
+            with self.subTest(tool=name):
+                original = path.read_bytes()
+                path.write_bytes(original + b" unvalidated replacement")
+                self.assertTrue(cuda_backend.status(gpu)["available"])
+                self.assertFalse(cuda_backend.status(gpu, **overrides)["available"])
+                path.write_bytes(original)
+
+        source, destination = self.root / "source.mp4", self.root / "output.mp4"
+        source.write_bytes(b"original source bytes")
+        destination.write_bytes(b"previous completed output")
+        overrides["ffmpeg"].write_bytes(b"an encoder with different driver requirements")
+        source_probe = {"width": 1440, "height": 1080, "avg_frame_rate": "60/1",
+                        "duration": "10", "_format": {"duration": "10"}}
+        with patch.object(enhance, "_probe", return_value=source_probe), \
+                patch.object(enhance, "_detected_gpu", return_value=gpu), \
+                patch.object(enhance, "BENCHMARK_SIGNATURE", self.root / "absent.json"), \
+                patch.object(cuda_backend, "render") as render:
+            with self.assertRaisesRegex(RuntimeError, "not validated"):
+                enhance.enhance_segment(source, destination, {**overrides, "quality": "ai",
+                    "start": 1, "duration": .05, "frames": 3, "fps": "60/1"}, Mock())
+        render.assert_not_called()
+        self.assertEqual(destination.read_bytes(), b"previous completed output")
+        self.assertEqual(source.read_bytes(), b"original source bytes")
+        self.assertFalse(list(self.root.glob("*.working-*")))
 
     def test_exit75_propagates_through_enhancement_and_removes_only_partial_output(self):
         source, destination = self.root / "source.mp4", self.root / "output.mp4"

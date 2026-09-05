@@ -13,7 +13,9 @@ def near_duplicate(a, b):
     distances = [(int(x, 16) ^ int(y, 16)).bit_count() for x, y in zip(a["hash_sequence"], b["hash_sequence"])]
     return max(distances) <= 5
 
-def plan(candidates, probes, fps, duration="auto", style="hype", overrides=None):
+def plan(candidates, probes, fps, duration="auto", style="hype", overrides=None, edit_order="story"):
+    if edit_order not in ("story", "chronological"):
+        raise ValueError("Edit order must be story or chronological")
     target = 75 if str(duration) == "auto" else int(duration)
     by_source = {p["source"]: p for p in probes}
     for c in candidates:
@@ -73,6 +75,9 @@ def plan(candidates, probes, fps, duration="auto", style="hype", overrides=None)
         rest.remove(next_clip)
     if hero is not opener: ordered.append(hero)
     if ending: ordered.append(ending)
+    if edit_order == "chronological":
+        source_order = {p["source"]: i for i, p in enumerate(probes)}
+        ordered = sorted(chosen, key=lambda c: (source_order[c["source"]], c["start"]))
     if "order" in overrides:
         requested_order = overrides["order"]
         if len(requested_order) != len(chosen) or set(requested_order) != {c["id"] for c in chosen}:
@@ -126,6 +131,6 @@ def plan(candidates, probes, fps, duration="auto", style="hype", overrides=None)
         shots.append(c)
         cursor += frames
     return {"version": 1, "fps": fps, "frames": cursor, "duration": float(Fraction(cursor, 1) / out_fps),
-            "target": duration, "style": style, "music": None, "music_status": "No music requested",
+            "target": duration, "style": style, "edit_order": edit_order, "music": None, "music_status": "No music selected",
             "selection_method": "full-session motion/quality heuristics; maneuver names are estimates",
-            "shots": shots, "warnings": ["Automatic endings retain 2.5 seconds after detected motion bursts and link bursts within that hold. These are motion estimates, not proof of complete tricks or controlled recovery; explicitly reviewed boundaries take precedence."]}
+            "shots": shots, "warnings": ["Automatic endings retain the selected recovery interval after detected motion bursts and link bursts within that hold. These are motion estimates, not proof of complete tricks or controlled recovery; explicitly reviewed boundaries take precedence."]}

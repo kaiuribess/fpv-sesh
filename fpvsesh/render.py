@@ -46,7 +46,7 @@ def _concat_file(paths, dest):
     # Generated app-owned segments have simple relative names, avoiding concat escaping of source names.
     dest.write_text("\n".join("file '" + p.name + "'" for p in paths) + "\n", encoding="utf-8")
 
-def make_audio(timeline, probes, job, level, event, checkpoint):
+def make_audio(timeline, probes, job, level, event, checkpoint, lossless=False):
     ffmpeg, _ = locate_tools()
     by_source = {p["source"]: p for p in probes}
     if level <= 0 or not any(by_source[s["source"]]["audio"] for s in timeline["shots"]): return None
@@ -70,16 +70,17 @@ def make_audio(timeline, probes, job, level, event, checkpoint):
     joined = directory / "joined.wav"
     run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(joined)], log_file=job / "render.log")
     # Keep original audio natural; limit peaks and fade the ending, without loudness pumping.
-    output = job / "source-audio.m4a"
+    output = job / ("source-audio.wav" if lossless else "source-audio.m4a")
     audio_filter = f"volume={level:.4f},alimiter=limit=0.8913:level=false:latency=true,afade=t=out:st={max(0,timeline['duration']-.3):.9f}:d=0.3"
-    run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(joined), "-af", audio_filter, "-c:a", "aac", "-b:a", "192k", "-t", f"{timeline['duration']:.9f}", str(output)], log_file=job / "render.log")
+    codec_options = ["-c:a", "pcm_s24le"] if lossless else ["-c:a", "aac", "-b:a", "256k"]
+    run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(joined), "-af", audio_filter, *codec_options, "-t", f"{timeline['duration']:.9f}", str(output)], log_file=job / "render.log")
     measure = run([ffmpeg, "-hide_banner", "-i", str(output), "-af", "ebur128=peak=true", "-f", "null", "-"], check=False)
     (job / "audio-loudness.txt").write_text(measure.stderr, encoding="utf-8")
-    event("audio", 1, "Original audio edited and faded; no music added")
+    event("audio", 1, "Flight sound prepared for the music mix" if lossless else "Original audio edited and faded")
     return output
 
 def render_timeline(timeline, probes, settings, job, cache, event, checkpoint, preview=False):
-    ffmpeg, _ = locate_tools()
+    ffmpeg, ffprobe = locate_tools()
     stage = "preview" if preview else "final"
     width, height = (1280, 720) if preview else (3840, 2160)
     ensure_space(cache, 2**30 if preview else max(5 * 2**30, timeline["duration"] * 120_000_000 if settings["quality"] == "ai" else 5 * 2**30))
@@ -92,7 +93,7 @@ def render_timeline(timeline, probes, settings, job, cache, event, checkpoint, p
         checkpoint()
         bound_cache(cache, reserve=512 * 2**20, protected=segments)
         grade = grade_for(s, settings["look"], settings["strength"])
-        options = {"version": RENDER_VERSION, "identity": s["identity"], "start": s["start"], "duration": s["duration"],
+        options = {"version": RENDER_VERSION, "ffmpeg": ffmpeg, "ffprobe": ffprobe, "identity": s["identity"], "start": s["start"], "duration": s["duration"],
                    "frames": s["frames"], "fps": timeline["fps"], "vfr": s.get("vfr", False), "width": width, "height": height, "grade": grade,
                    "quality": "lanczos" if preview else settings["quality"], "codec": "h264" if preview else settings["codec"]}
         if not preview and settings["quality"] == "ai":

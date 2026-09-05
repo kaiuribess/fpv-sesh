@@ -11,6 +11,7 @@ import time
 import uuid
 
 from .control import Cancelled
+from .media import locate_tools
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = ROOT / ".venv-ai/Scripts/python.exe"
@@ -19,7 +20,8 @@ PROFILE = {"ai_model": "RealESRGAN_x2plus", "ai_blend": .4, "ai_denoise": .2,
            "ai_tile": 768, "cq": 16, "encoder_preset": "p7"}
 
 
-def signature():
+def signature(*, ffmpeg=None, ffprobe=None):
+    """Fingerprint the binaries the caller will use, including explicit overrides."""
     paths = [ROOT / "fpvsesh/ai_models.py", ROOT / "fpvsesh/ai_worker.py",
              ROOT / "models/real-esrgan-cuda/RealESRGAN_x2plus.pth",
              ROOT / ".venv-ai/Lib/site-packages/torch/version.py"]
@@ -27,14 +29,22 @@ def signature():
     for path in paths:
         with path.open("rb") as stream:
             hashes[str(path.relative_to(ROOT)).replace("\\", "/")] = hashlib.file_digest(stream, "sha256").hexdigest()
-    return {"profile": PROFILE, "files": hashes}
+    if ffmpeg is None or ffprobe is None:
+        default_ffmpeg, default_ffprobe = locate_tools()
+        ffmpeg = default_ffmpeg if ffmpeg is None else ffmpeg
+        ffprobe = default_ffprobe if ffprobe is None else ffprobe
+    tools = {}
+    for name, executable in (("ffmpeg", ffmpeg), ("ffprobe", ffprobe)):
+        with Path(executable).open("rb") as stream:
+            tools[name] = hashlib.file_digest(stream, "sha256").hexdigest()
+    return {"profile": PROFILE, "files": hashes, "tools": tools}
 
 
-def status(gpu):
+def status(gpu, *, ffmpeg=None, ffprobe=None):
     try:
         record = json.loads(VALIDATION.read_text(encoding="utf-8"))
         available = (PYTHON.is_file() and record.get("passed") is True and
-                     record.get("gpu") == gpu and record.get("signature") == signature())
+                     record.get("gpu") == gpu and record.get("signature") == signature(ffmpeg=ffmpeg, ffprobe=ffprobe))
     except (OSError, ValueError):
         record, available = {}, False
     return {"available": available, "profile": PROFILE,
@@ -117,7 +127,8 @@ def render(source, destination, options, source_probe, fit_dimensions, log):
                        "frame_rate_conversion": options.get("rate_conversion", False),
                        "peak_total_gpu_memory_mib": max(gpu_samples, default=None),
                        "memory_measurement": "Total GPU usage sampled at worker progress reports; includes other applications and may miss brief peaks.",
-                       "log_path": str(log_path), "model_signature": signature()})
+                       "log_path": str(log_path),
+                       "model_signature": signature(ffmpeg=options.get("ffmpeg"), ffprobe=options.get("ffprobe"))})
         return result
     finally:
         if process is not None:

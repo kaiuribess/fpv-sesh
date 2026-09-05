@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "model": "Places365 ResNet18",
+  "architecture": "ResNet18, 365 classes",
+  "pretraining": "Places365-Standard: approximately 1.8 million scene images from the internet",
+  "model_license": "CC BY; upstream does not specify version",
+  "code_licenses": [
+    "MIT (Places365)",
+    "BSD-3-Clause (torchvision)"
+  ],
+  "attribution": "Bolei Zhou, Agata Lapedriza, Aditya Khosla, Aude Oliva, Antonio Torralba. Places: A 10 million Image Database for Scene Recognition. IEEE TPAMI, 2017.",
+  "upstream": "https://github.com/CSAILVision/places365",
+  "checksum_note": "Complete SHA256 computed after downloading from the official documented HTTP model endpoint. No independently publisher-signed digest was found. Pinned here for subsequent integrity checks; not proof of publisher authenticity.",
+  "assets": [
+    {
+      "file": "resnet18_places365.pth.tar",
+      "url": "http://places2.csail.mit.edu/models_places365/resnet18_places365.pth.tar",
+      "sha256": "2f4759217d470da2b803f8f66cd4488a066406b555a5fb95ee9a4663f9f05588",
+      "size_bytes": 45506139
+    },
+    {
+      "file": "categories_places365.txt",
+      "url": "https://raw.githubusercontent.com/CSAILVision/places365/master/categories_places365.txt",
+      "sha256": "2affba635eb657e7ca95f4e6cc69bd9fac29ef4c32aeb83cafdfcd06ec6a1ea6",
+      "size_bytes": 6833
+    },
+    {
+      "file": "Places365-MIT-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/CSAILVision/places365/master/LICENSE",
+      "sha256": "d4e65e5f2171ee6cca57b0f15ef1da5f11e91a170b6f4511342574b8e2d046c2",
+      "size_bytes": 1097
+    },
+    {
+      "file": "Torchvision-BSD-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/pytorch/vision/v0.24.1/LICENSE",
+      "sha256": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d",
+      "size_bytes": 1517
+    }
+  ]
+}
