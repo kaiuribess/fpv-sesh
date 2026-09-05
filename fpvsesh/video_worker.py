@@ -59,6 +59,8 @@ def decode_window(source, window, profile, ffmpeg, checkpoint=lambda: None):
 
 
 def run(config):
+    from .runtime_dlls import prepare_torch_dlls
+    prepare_torch_dlls()
     import torch
     from transformers import AutoProcessor, Qwen3VLForConditionalGeneration, StoppingCriteria, StoppingCriteriaList
     control = Path(config["control"])

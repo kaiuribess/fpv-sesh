@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "captured_utc": "2026-09-05T06:35:00.019371+00:00",
+  "captured_utc": "2026-09-05T10:28:30.522441+00:00",
   "platform": "Windows AMD64",
-  "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
-  "python_requirement": "3.12, 64-bit",
+  "python": "CPython 3.12 or 3.13 Windows AMD64",
+  "python_requirement": "CPython 3.12 or 3.13, Windows AMD64; wheels lists publisher hashes for both supported interpreters",
   "environment": ".venv-ai",
-  "pytorch_install_source": "https://pytorch.org/get-started/previous-versions/#v291",
+  "pytorch_install_source": "https://pytorch.org/get-started/previous-versions/",
   "models_manifest": "models/real-esrgan-cuda/manifest.json",
   "packages": [
     {
@@ -31,7 +31,25 @@
       "wheel_url": "https://files.pythonhosted.org/packages/a7/8e/50f46a9c0ce8d2861a394c1347caae037ea0431d2f67d7feb151cbc4649a/filelock-3.32.3-py3-none-any.whl",
       "wheel_filename": "filelock-3.32.3-py3-none-any.whl",
       "wheel_sha256": "7f0ca4bcc0e181c60dbbd8aa9ab5b120ebb99e4e064e83636340056f833a1f09",
-      "wheel_size_bytes": 98901
+      "wheel_size_bytes": 98901,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "filelock-3.32.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a7/8e/50f46a9c0ce8d2861a394c1347caae037ea0431d2f67d7feb151cbc4649a/filelock-3.32.3-py3-none-any.whl",
+          "sha256": "7f0ca4bcc0e181c60dbbd8aa9ab5b120ebb99e4e064e83636340056f833a1f09",
+          "metadata_source": "https://pypi.org/pypi/filelock/3.32.3/json",
+          "size_bytes": 98901
+        },
+        {
+          "python": "3.13",
+          "filename": "filelock-3.32.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a7/8e/50f46a9c0ce8d2861a394c1347caae037ea0431d2f67d7feb151cbc4649a/filelock-3.32.3-py3-none-any.whl",
+          "sha256": "7f0ca4bcc0e181c60dbbd8aa9ab5b120ebb99e4e064e83636340056f833a1f09",
+          "size_bytes": 98901,
+          "metadata_source": "https://pypi.org/pypi/filelock/3.32.3/json"
+        }
+      ]
     },
     {
       "name": "fsspec",
@@ -158,15 +176,33 @@
       "wheel_url": "https://files.pythonhosted.org/packages/fd/3c/6a2bf344106328fd04963664a60b9bb6496fc25df8e962fcdc1367285fb9/fsspec-2026.7.0-py3-none-any.whl",
       "wheel_filename": "fsspec-2026.7.0-py3-none-any.whl",
       "wheel_sha256": "b57ddbafedfaef7018c1ecab32aa200a9d7ca26b77965f64e48b70061249d279",
-      "wheel_size_bytes": 206583
+      "wheel_size_bytes": 206583,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "fsspec-2026.7.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/fd/3c/6a2bf344106328fd04963664a60b9bb6496fc25df8e962fcdc1367285fb9/fsspec-2026.7.0-py3-none-any.whl",
+          "sha256": "b57ddbafedfaef7018c1ecab32aa200a9d7ca26b77965f64e48b70061249d279",
+          "metadata_source": "https://pypi.org/pypi/fsspec/2026.7.0/json",
+          "size_bytes": 206583
+        },
+        {
+          "python": "3.13",
+          "filename": "fsspec-2026.7.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/fd/3c/6a2bf344106328fd04963664a60b9bb6496fc25df8e962fcdc1367285fb9/fsspec-2026.7.0-py3-none-any.whl",
+          "sha256": "b57ddbafedfaef7018c1ecab32aa200a9d7ca26b77965f64e48b70061249d279",
+          "size_bytes": 206583,
+          "metadata_source": "https://pypi.org/pypi/fsspec/2026.7.0/json"
+        }
+      ]
     },
     {
-      "name": "Jinja2",
+      "name": "jinja2",
       "version": "3.1.6",
-      "license_metadata": "See bundled license notices",
+      "license_metadata": "See retained upstream notice",
       "license_files": [
         {
-          "path": "tools/ai-license-notices/Jinja2/0-LICENSE.txt",
+          "path": "tools/ai-license-notices/jinja2/0-LICENSE.txt",
           "installed_source": "jinja2-3.1.6.dist-info/licenses/LICENSE.txt",
           "sha256": "3b49dcee4105eb37bac10faf1be260408fe85d252b8e9df2e0979fc1e094437b"
         }
@@ -183,19 +219,37 @@
         "Babel>=2.7 ; extra == \"i18n\""
       ],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/Jinja2/3.1.6/json",
+      "metadata_source": "https://pypi.org/pypi/jinja2/3.1.6/json",
       "wheel_url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
       "wheel_filename": "jinja2-3.1.6-py3-none-any.whl",
       "wheel_sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
-      "wheel_size_bytes": 134899
+      "wheel_size_bytes": 134899,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "jinja2-3.1.6-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "metadata_source": "https://pypi.org/pypi/jinja2/3.1.6/json",
+          "size_bytes": 134899
+        },
+        {
+          "python": "3.13",
+          "filename": "jinja2-3.1.6-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "size_bytes": 134899,
+          "metadata_source": "https://pypi.org/pypi/jinja2/3.1.6/json"
+        }
+      ]
     },
     {
-      "name": "MarkupSafe",
+      "name": "markupsafe",
       "version": "3.0.3",
       "license_metadata": "BSD-3-Clause",
       "license_files": [
         {
-          "path": "tools/ai-license-notices/MarkupSafe/0-LICENSE.txt",
+          "path": "tools/ai-license-notices/markupsafe/0-LICENSE.txt",
           "installed_source": "markupsafe-3.0.3.dist-info/licenses/LICENSE.txt",
           "sha256": "4631ec0db5fd90a547e336817264c6798214338146f8ac94b4a57f96ee8c9ec4"
         }
@@ -209,11 +263,29 @@
       ],
       "requires_dist": [],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/MarkupSafe/3.0.3/json",
+      "metadata_source": "https://pypi.org/pypi/markupsafe/3.0.3/json",
       "wheel_url": "https://files.pythonhosted.org/packages/aa/5b/bec5aa9bbbb2c946ca2733ef9c4ca91c91b6a24580193e891b5f7dbe8e1e/markupsafe-3.0.3-cp312-cp312-win_amd64.whl",
       "wheel_filename": "markupsafe-3.0.3-cp312-cp312-win_amd64.whl",
       "wheel_sha256": "26a5784ded40c9e318cfc2bdb30fe164bdb8665ded9cd64d500a34fb42067b1c",
-      "wheel_size_bytes": 15105
+      "wheel_size_bytes": 15105,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "markupsafe-3.0.3-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/aa/5b/bec5aa9bbbb2c946ca2733ef9c4ca91c91b6a24580193e891b5f7dbe8e1e/markupsafe-3.0.3-cp312-cp312-win_amd64.whl",
+          "sha256": "26a5784ded40c9e318cfc2bdb30fe164bdb8665ded9cd64d500a34fb42067b1c",
+          "metadata_source": "https://pypi.org/pypi/markupsafe/3.0.3/json",
+          "size_bytes": 15105
+        },
+        {
+          "python": "3.13",
+          "filename": "markupsafe-3.0.3-cp313-cp313-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/05/73/c4abe620b841b6b791f2edc248f556900667a5a1cf023a6646967ae98335/markupsafe-3.0.3-cp313-cp313-win_amd64.whl",
+          "sha256": "9a1abfdc021a164803f4d485104931fb8f8c1efd55bc6b748d2f5774e78b62c5",
+          "size_bytes": 15113,
+          "metadata_source": "https://pypi.org/pypi/markupsafe/3.0.3/json"
+        }
+      ]
     },
     {
       "name": "mpmath",
@@ -246,7 +318,25 @@
       "wheel_url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
       "wheel_filename": "mpmath-1.3.0-py3-none-any.whl",
       "wheel_sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
-      "wheel_size_bytes": 536198
+      "wheel_size_bytes": 536198,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "mpmath-1.3.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+          "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+          "metadata_source": "https://pypi.org/pypi/mpmath/1.3.0/json",
+          "size_bytes": 536198
+        },
+        {
+          "python": "3.13",
+          "filename": "mpmath-1.3.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+          "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+          "size_bytes": 536198,
+          "metadata_source": "https://pypi.org/pypi/mpmath/1.3.0/json"
+        }
+      ]
     },
     {
       "name": "networkx",
@@ -309,12 +399,30 @@
       "wheel_url": "https://files.pythonhosted.org/packages/9e/c9/b2622292ea83fbb4ec318f5b9ab867d0a28ab43c5717bb85b0a5f6b3b0a4/networkx-3.6.1-py3-none-any.whl",
       "wheel_filename": "networkx-3.6.1-py3-none-any.whl",
       "wheel_sha256": "d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762",
-      "wheel_size_bytes": 2068504
+      "wheel_size_bytes": 2068504,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "networkx-3.6.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/9e/c9/b2622292ea83fbb4ec318f5b9ab867d0a28ab43c5717bb85b0a5f6b3b0a4/networkx-3.6.1-py3-none-any.whl",
+          "sha256": "d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762",
+          "metadata_source": "https://pypi.org/pypi/networkx/3.6.1/json",
+          "size_bytes": 2068504
+        },
+        {
+          "python": "3.13",
+          "filename": "networkx-3.6.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/9e/c9/b2622292ea83fbb4ec318f5b9ab867d0a28ab43c5717bb85b0a5f6b3b0a4/networkx-3.6.1-py3-none-any.whl",
+          "sha256": "d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762",
+          "size_bytes": 2068504,
+          "metadata_source": "https://pypi.org/pypi/networkx/3.6.1/json"
+        }
+      ]
     },
     {
       "name": "numpy",
       "version": "2.2.6",
-      "license_metadata": "See bundled license notices",
+      "license_metadata": "Copyright (c) 2005-2024, NumPy Developers.\n All rights reserved.\n\n Redistribution and use in source and binary forms, with or without\n modification, are permitted provided that the following conditions are\n met:\n\n     * Redistributions of source code must retain the above copyright\n        notice, this list of conditions and the following disclaimer.\n\n     * Redistributions in binary form must reproduce the above\n        copyright notice, this list of conditions and the following\n        disclaimer in the documentation and/or other materials provided\n        with the distribution.\n\n     * Neither the name of the NumPy Developers nor the names of any\n        contributors may be used to endorse or promote products derived\n        from this software without specific prior written permission.\n\n THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\n LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n ----\n\n The NumPy repository and source distributions bundle several libraries that are\n compatibly licensed.  We list these here.\n\n Name: lapack-lite\n Files: numpy/linalg/lapack_lite/*\n License: BSD-3-Clause\n   For details, see numpy/linalg/lapack_lite/LICENSE.txt\n\n Name: dragon4\n Files: numpy/_core/src/multiarray/dragon4.c\n License: MIT\n   For license text, see numpy/_core/src/multiarray/dragon4.c\n\n Name: libdivide\n Files: numpy/_core/include/numpy/libdivide/*\n License: Zlib\n   For license text, see numpy/_core/include/numpy/libdivide/LICENSE.txt\n\n\n Note that the following files are vendored in the repository and sdist but not\n installed in built numpy packages:\n\n Name: Meson\n Files: vendored-meson/meson/*\n License: Apache 2.0\n   For license text, see vendored-meson/meson/COPYING\n\n Name: spin\n Files: .spin/cmds.py\n License: BSD-3\n   For license text, see .spin/LICENSE\n\n Name: tempita\n Files: numpy/_build_utils/tempita/*\n License: MIT\n   For details, see numpy/_build_utils/tempita/LICENCE.txt\n\n ----\n\n This binary distribution of NumPy also bundles the following software:\n\n\n Name: OpenBLAS\n Files: numpy.libs\\libscipy_openblas*.dll\n Description: bundled as a dynamically linked library\n Availability: https://github.com/OpenMathLib/OpenBLAS/\n License: BSD-3-Clause\n   Copyright (c) 2011-2014, The OpenBLAS Project\n   All rights reserved.\n\n   Redistribution and use in source and binary forms, with or without\n   modification, are permitted provided that the following conditions are\n   met:\n\n      1. Redistributions of source code must retain the above copyright\n         notice, this list of conditions and the following disclaimer.\n\n      2. Redistributions in binary form must reproduce the above copyright\n         notice, this list of conditions and the following disclaimer in\n         the documentation and/or other materials provided with the\n         distribution.\n      3. Neither the name of the OpenBLAS project nor the names of\n         its contributors may be used to endorse or promote products\n         derived from this software without specific prior written\n         permission.\n\n   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\n   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\n   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\n   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE\n   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n\n Name: LAPACK\n Files: numpy.libs\\libscipy_openblas*.dll\n Description: bundled in OpenBLAS\n Availability: https://github.com/OpenMathLib/OpenBLAS/\n License: BSD-3-Clause-Attribution\n   Copyright (c) 1992-2013 The University of Tennessee and The University\n                           of Tennessee Research Foundation.  All rights\n                           reserved.\n   Copyright (c) 2000-2013 The University of California Berkeley. All\n                           rights reserved.\n   Copyright (c) 2006-2013 The University of Colorado Denver.  All rights\n                           reserved.\n\n   $COPYRIGHT$\n\n   Additional copyrights may follow\n\n   $HEADER$\n\n   Redistribution and use in source and binary forms, with or without\n   modification, are permitted provided that the following conditions are\n   met:\n\n   - Redistributions of source code must retain the above copyright\n     notice, this list of conditions and the following disclaimer.\n\n   - Redistributions in binary form must reproduce the above copyright\n     notice, this list of conditions and the following disclaimer listed\n     in this license in the documentation and/or other materials\n     provided with the distribution.\n\n   - Neither the name of the copyright holders nor the names of its\n     contributors may be used to endorse or promote products derived from\n     this software without specific prior written permission.\n\n   The copyright holders provide no reassurances that the source code\n   provided does not infringe any patent, copyright, or any other\n   intellectual property rights of third parties.  The copyright holders\n   disclaim any liability to any recipient for claims brought against\n   recipient by any third party for infringement of that parties\n   intellectual property rights.\n\n   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n   \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\n   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n\n Name: GCC runtime library\n Files: numpy.libs\\libscipy_openblas*.dll\n Description: statically linked to files compiled with gcc\n Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran\n License: GPL-3.0-with-GCC-exception\n   Copyright (C) 2002-2017 Free Software Foundation, Inc.\n\n   Libgfortran is free software; you can redistribute it and/or modify\n   it under the terms of the GNU General Public License as published by\n   the Free Software Foundation; either version 3, or (at your option)\n   any later version.\n\n   Libgfortran is distributed in the hope that it will be useful,\n   but WITHOUT ANY WARRANTY; without even the implied warranty of\n   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n   GNU General Public License for more details.\n\n   Under Section 7 of GPL version 3, you are granted additional\n   permissions described in the GCC Runtime Library Exception, version\n   3.1, as published by the Free Software Foundation.\n\n   You should have received a copy of the GNU General Public License and\n   a copy of the GCC Runtime Library Exception along with this program;\n   see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see\n   <http://www.gnu.org/licenses/>.\n\n ----\n\n Full text of license texts referred to above follows (that they are\n listed below does not necessarily imply the conditions apply to the\n present binary release):\n\n ----\n\n GCC RUNTIME LIBRARY EXCEPTION\n\n Version 3.1, 31 March 2009\n\n Copyright (C) 2009 Free Software Foundation, Inc. <http://fsf.org/>\n\n Everyone is permitted to copy and distribute verbatim copies of this\n license document, but changing it is not allowed.\n\n This GCC Runtime Library Exception (\"Exception\") is an additional\n permission under section 7 of the GNU General Public License, version\n 3 (\"GPLv3\"). It applies to a given file (the \"Runtime Library\") that\n bears a notice placed by the copyright holder of the file stating that\n the file is governed by GPLv3 along with this Exception.\n\n When you use GCC to compile a program, GCC may combine portions of\n certain GCC header files and runtime libraries with the compiled\n program. The purpose of this Exception is to allow compilation of\n non-GPL (including proprietary) programs to use, in this way, the\n header files and runtime libraries covered by this Exception.\n\n 0. Definitions.\n\n A file is an \"Independent Module\" if it either requires the Runtime\n Library for execution after a Compilation Process, or makes use of an\n interface provided by the Runtime Library, but is not otherwise based\n on the Runtime Library.\n\n \"GCC\" means a version of the GNU Compiler Collection, with or without\n modifications, governed by version 3 (or a specified later version) of\n the GNU General Public License (GPL) with the option of using any\n subsequent versions published by the FSF.\n\n \"GPL-compatible Software\" is software whose conditions of propagation,\n modification and use would permit combination with GCC in accord with\n the license of GCC.\n\n \"Target Code\" refers to output from any compiler for a real or virtual\n target processor architecture, in executable form or suitable for\n input to an assembler, loader, linker and/or execution\n phase. Notwithstanding that, Target Code does not include data in any\n format that is used as a compiler intermediate representation, or used\n for producing a compiler intermediate representation.\n\n The \"Compilation Process\" transforms code entirely represented in\n non-intermediate languages designed for human-written code, and/or in\n Java Virtual Machine byte code, into Target Code. Thus, for example,\n use of source code generators and preprocessors need not be considered\n part of the Compilation Process, since the Compilation Process can be\n understood as starting with the output of the generators or\n preprocessors.\n\n A Compilation Process is \"Eligible\" if it is done using GCC, alone or\n with other GPL-compatible software, or if it is done without using any\n work based on GCC. For example, using non-GPL-compatible Software to\n optimize any GCC intermediate representations would not qualify as an\n Eligible Compilation Process.\n\n 1. Grant of Additional Permission.\n\n You have permission to propagate a work of Target Code formed by\n combining the Runtime Library with Independent Modules, even if such\n propagation would otherwise violate the terms of GPLv3, provided that\n all Target Code was generated by Eligible Compilation Processes. You\n may then convey such a combination under terms of your choice,\n consistent with the licensing of the Independent Modules.\n\n 2. No Weakening of GCC Copyleft.\n\n The availability of this Exception does not imply any general\n presumption that third-party software is unaffected by the copyleft\n requirements of the license of GCC.\n\n ----\n\n                     GNU GENERAL PUBLIC LICENSE\n                        Version 3, 29 June 2007\n\n  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n  Everyone is permitted to copy and distribute verbatim copies\n  of this license document, but changing it is not allowed.\n\n                             Preamble\n\n   The GNU General Public License is a free, copyleft license for\n software and other kinds of works.\n\n   The licenses for most software and other practical works are designed\n to take away your freedom to share and change the works.  By contrast,\n the GNU General Public License is intended to guarantee your freedom to\n share and change all versions of a program--to make sure it remains free\n software for all its users.  We, the Free Software Foundation, use the\n GNU General Public License for most of our software; it applies also to\n any other work released this way by its authors.  You can apply it to\n your programs, too.\n\n   When we speak of free software, we are referring to freedom, not\n price.  Our General Public Licenses are designed to make sure that you\n have the freedom to distribute copies of free software (and charge for\n them if you wish), that you receive source code or can get it if you\n want it, that you can change the software or use pieces of it in new\n free programs, and that you know you can do these things.\n\n   To protect your rights, we need to prevent others from denying you\n these rights or asking you to surrender the rights.  Therefore, you have\n certain responsibilities if you distribute copies of the software, or if\n you modify it: responsibilities to respect the freedom of others.\n\n   For example, if you distribute copies of such a program, whether\n gratis or for a fee, you must pass on to the recipients the same\n freedoms that you received.  You must make sure that they, too, receive\n or can get the source code.  And you must show them these terms so they\n know their rights.\n\n   Developers that use the GNU GPL protect your rights with two steps:\n (1) assert copyright on the software, and (2) offer you this License\n giving you legal permission to copy, distribute and/or modify it.\n\n   For the developers' and authors' protection, the GPL clearly explains\n that there is no warranty for this free software.  For both users' and\n authors' sake, the GPL requires that modified versions be marked as\n changed, so that their problems will not be attributed erroneously to\n authors of previous versions.\n\n   Some devices are designed to deny users access to install or run\n modified versions of the software inside them, although the manufacturer\n can do so.  This is fundamentally incompatible with the aim of\n protecting users' freedom to change the software.  The systematic\n pattern of such abuse occurs in the area of products for individuals to\n use, which is precisely where it is most unacceptable.  Therefore, we\n have designed this version of the GPL to prohibit the practice for those\n products.  If such problems arise substantially in other domains, we\n stand ready to extend this provision to those domains in future versions\n of the GPL, as needed to protect the freedom of users.\n\n   Finally, every program is threatened constantly by software patents.\n States should not allow patents to restrict development and use of\n software on general-purpose computers, but in those that do, we wish to\n avoid the special danger that patents applied to a free program could\n make it effectively proprietary.  To prevent this, the GPL assures that\n patents cannot be used to render the program non-free.\n\n   The precise terms and conditions for copying, distribution and\n modification follow.\n\n                        TERMS AND CONDITIONS\n\n   0. Definitions.\n\n   \"This License\" refers to version 3 of the GNU General Public License.\n\n   \"Copyright\" also means copyright-like laws that apply to other kinds of\n works, such as semiconductor masks.\n\n   \"The Program\" refers to any copyrightable work licensed under this\n License.  Each licensee is addressed as \"you\".  \"Licensees\" and\n \"recipients\" may be individuals or organizations.\n\n   To \"modify\" a work means to copy from or adapt all or part of the work\n in a fashion requiring copyright permission, other than the making of an\n exact copy.  The resulting work is called a \"modified version\" of the\n earlier work or a work \"based on\" the earlier work.\n\n   A \"covered work\" means either the unmodified Program or a work based\n on the Program.\n\n   To \"propagate\" a work means to do anything with it that, without\n permission, would make you directly or secondarily liable for\n infringement under applicable copyright law, except executing it on a\n computer or modifying a private copy.  Propagation includes copying,\n distribution (with or without modification), making available to the\n public, and in some countries other activities as well.\n\n   To \"convey\" a work means any kind of propagation that enables other\n parties to make or receive copies.  Mere interaction with a user through\n a computer network, with no transfer of a copy, is not conveying.\n\n   An interactive user interface displays \"Appropriate Legal Notices\"\n to the extent that it includes a convenient and prominently visible\n feature that (1) displays an appropriate copyright notice, and (2)\n tells the user that there is no warranty for the work (except to the\n extent that warranties are provided), that licensees may convey the\n work under this License, and how to view a copy of this License.  If\n the interface presents a list of user commands or options, such as a\n menu, a prominent item in the list meets this criterion.\n\n   1. Source Code.\n\n   The \"source code\" for a work means the preferred form of the work\n for making modifications to it.  \"Object code\" means any non-source\n form of a work.\n\n   A \"Standard Interface\" means an interface that either is an official\n standard defined by a recognized standards body, or, in the case of\n interfaces specified for a particular programming language, one that\n is widely used among developers working in that language.\n\n   The \"System Libraries\" of an executable work include anything, other\n than the work as a whole, that (a) is included in the normal form of\n packaging a Major Component, but which is not part of that Major\n Component, and (b) serves only to enable use of the work with that\n Major Component, or to implement a Standard Interface for which an\n implementation is available to the public in source code form.  A\n \"Major Component\", in this context, means a major essential component\n (kernel, window system, and so on) of the specific operating system\n (if any) on which the executable work runs, or a compiler used to\n produce the work, or an object code interpreter used to run it.\n\n   The \"Corresponding Source\" for a work in object code form means all\n the source code needed to generate, install, and (for an executable\n work) run the object code and to modify the work, including scripts to\n control those activities.  However, it does not include the work's\n System Libraries, or general-purpose tools or generally available free\n programs which are used unmodified in performing those activities but\n which are not part of the work.  For example, Corresponding Source\n includes interface definition files associated with source files for\n the work, and the source code for shared libraries and dynamically\n linked subprograms that the work is specifically designed to require,\n such as by intimate data communication or control flow between those\n subprograms and other parts of the work.\n\n   The Corresponding Source need not include anything that users\n can regenerate automatically from other parts of the Corresponding\n Source.\n\n   The Corresponding Source for a work in source code form is that\n same work.\n\n   2. Basic Permissions.\n\n   All rights granted under this License are granted for the term of\n copyright on the Program, and are irrevocable provided the stated\n conditions are met.  This License explicitly affirms your unlimited\n permission to run the unmodified Program.  The output from running a\n covered work is covered by this License only if the output, given its\n content, constitutes a covered work.  This License acknowledges your\n rights of fair use or other equivalent, as provided by copyright law.\n\n   You may make, run and propagate covered works that you do not\n convey, without conditions so long as your license otherwise remains\n in force.  You may convey covered works to others for the sole purpose\n of having them make modifications exclusively for you, or provide you\n with facilities for running those works, provided that you comply with\n the terms of this License in conveying all material for which you do\n not control copyright.  Those thus making or running the covered works\n for you must do so exclusively on your behalf, under your direction\n and control, on terms that prohibit them from making any copies of\n your copyrighted material outside their relationship with you.\n\n   Conveying under any other circumstances is permitted solely under\n the conditions stated below.  Sublicensing is not allowed; section 10\n makes it unnecessary.\n\n   3. Protecting Users' Legal Rights From Anti-Circumvention Law.\n\n   No covered work shall be deemed part of an effective technological\n measure under any applicable law fulfilling obligations under article\n 11 of the WIPO copyright treaty adopted on 20 December 1996, or\n similar laws prohibiting or restricting circumvention of such\n measures.\n\n   When you convey a covered work, you waive any legal power to forbid\n circumvention of technological measures to the extent such circumvention\n is effected by exercising rights under this License with respect to\n the covered work, and you disclaim any intention to limit operation or\n modification of the work as a means of enforcing, against the work's\n users, your or third parties' legal rights to forbid circumvention of\n technological measures.\n\n   4. Conveying Verbatim Copies.\n\n   You may convey verbatim copies of the Program's source code as you\n receive it, in any medium, provided that you conspicuously and\n appropriately publish on each copy an appropriate copyright notice;\n keep intact all notices stating that this License and any\n non-permissive terms added in accord with section 7 apply to the code;\n keep intact all notices of the absence of any warranty; and give all\n recipients a copy of this License along with the Program.\n\n   You may charge any price or no price for each copy that you convey,\n and you may offer support or warranty protection for a fee.\n\n   5. Conveying Modified Source Versions.\n\n   You may convey a work based on the Program, or the modifications to\n produce it from the Program, in the form of source code under the\n terms of section 4, provided that you also meet all of these conditions:\n\n     a) The work must carry prominent notices stating that you modified\n     it, and giving a relevant date.\n\n     b) The work must carry prominent notices stating that it is\n     released under this License and any conditions added under section\n     7.  This requirement modifies the requirement in section 4 to\n     \"keep intact all notices\".\n\n     c) You must license the entire work, as a whole, under this\n     License to anyone who comes into possession of a copy.  This\n     License will therefore apply, along with any applicable section 7\n     additional terms, to the whole of the work, and all its parts,\n     regardless of how they are packaged.  This License gives no\n     permission to license the work in any other way, but it does not\n     invalidate such permission if you have separately received it.\n\n     d) If the work has interactive user interfaces, each must display\n     Appropriate Legal Notices; however, if the Program has interactive\n     interfaces that do not display Appropriate Legal Notices, your\n     work need not make them do so.\n\n   A compilation of a covered work with other separate and independent\n works, which are not by their nature extensions of the covered work,\n and which are not combined with it such as to form a larger program,\n in or on a volume of a storage or distribution medium, is called an\n \"aggregate\" if the compilation and its resulting copyright are not\n used to limit the access or legal rights of the compilation's users\n beyond what the individual works permit.  Inclusion of a covered work\n in an aggregate does not cause this License to apply to the other\n parts of the aggregate.\n\n   6. Conveying Non-Source Forms.\n\n   You may convey a covered work in object code form under the terms\n of sections 4 and 5, provided that you also convey the\n machine-readable Corresponding Source under the terms of this License,\n in one of these ways:\n\n     a) Convey the object code in, or embodied in, a physical product\n     (including a physical distribution medium), accompanied by the\n     Corresponding Source fixed on a durable physical medium\n     customarily used for software interchange.\n\n     b) Convey the object code in, or embodied in, a physical product\n     (including a physical distribution medium), accompanied by a\n     written offer, valid for at least three years and valid for as\n     long as you offer spare parts or customer support for that product\n     model, to give anyone who possesses the object code either (1) a\n     copy of the Corresponding Source for all the software in the\n     product that is covered by this License, on a durable physical\n     medium customarily used for software interchange, for a price no\n     more than your reasonable cost of physically performing this\n     conveying of source, or (2) access to copy the\n     Corresponding Source from a network server at no charge.\n\n     c) Convey individual copies of the object code with a copy of the\n     written offer to provide the Corresponding Source.  This\n     alternative is allowed only occasionally and noncommercially, and\n     only if you received the object code with such an offer, in accord\n     with subsection 6b.\n\n     d) Convey the object code by offering access from a designated\n     place (gratis or for a charge), and offer equivalent access to the\n     Corresponding Source in the same way through the same place at no\n     further charge.  You need not require recipients to copy the\n     Corresponding Source along with the object code.  If the place to\n     copy the object code is a network server, the Corresponding Source\n     may be on a different server (operated by you or a third party)\n     that supports equivalent copying facilities, provided you maintain\n     clear directions next to the object code saying where to find the\n     Corresponding Source.  Regardless of what server hosts the\n     Corresponding Source, you remain obligated to ensure that it is\n     available for as long as needed to satisfy these requirements.\n\n     e) Convey the object code using peer-to-peer transmission, provided\n     you inform other peers where the object code and Corresponding\n     Source of the work are being offered to the general public at no\n     charge under subsection 6d.\n\n   A separable portion of the object code, whose source code is excluded\n from the Corresponding Source as a System Library, need not be\n included in conveying the object code work.\n\n   A \"User Product\" is either (1) a \"consumer product\", which means any\n tangible personal property which is normally used for personal, family,\n or household purposes, or (2) anything designed or sold for incorporation\n into a dwelling.  In determining whether a product is a consumer product,\n doubtful cases shall be resolved in favor of coverage.  For a particular\n product received by a particular user, \"normally used\" refers to a\n typical or common use of that class of product, regardless of the status\n of the particular user or of the way in which the particular user\n actually uses, or expects or is expected to use, the product.  A product\n is a consumer product regardless of whether the product has substantial\n commercial, industrial or non-consumer uses, unless such uses represent\n the only significant mode of use of the product.\n\n   \"Installation Information\" for a User Product means any methods,\n procedures, authorization keys, or other information required to install\n and execute modified versions of a covered work in that User Product from\n a modified version of its Corresponding Source.  The information must\n suffice to ensure that the continued functioning of the modified object\n code is in no case prevented or interfered with solely because\n modification has been made.\n\n   If you convey an object code work under this section in, or with, or\n specifically for use in, a User Product, and the conveying occurs as\n part of a transaction in which the right of possession and use of the\n User Product is transferred to the recipient in perpetuity or for a\n fixed term (regardless of how the transaction is characterized), the\n Corresponding Source conveyed under this section must be accompanied\n by the Installation Information.  But this requirement does not apply\n if neither you nor any third party retains the ability to install\n modified object code on the User Product (for example, the work has\n been installed in ROM).\n\n   The requirement to provide Installation Information does not include a\n requirement to continue to provide support service, warranty, or updates\n for a work that has been modified or installed by the recipient, or for\n the User Product in which it has been modified or installed.  Access to a\n network may be denied when the modification itself materially and\n adversely affects the operation of the network or violates the rules and\n protocols for communication across the network.\n\n   Corresponding Source conveyed, and Installation Information provided,\n in accord with this section must be in a format that is publicly\n documented (and with an implementation available to the public in\n source code form), and must require no special password or key for\n unpacking, reading or copying.\n\n   7. Additional Terms.\n\n   \"Additional permissions\" are terms that supplement the terms of this\n License by making exceptions from one or more of its conditions.\n Additional permissions that are applicable to the entire Program shall\n be treated as though they were included in this License, to the extent\n that they are valid under applicable law.  If additional permissions\n apply only to part of the Program, that part may be used separately\n under those permissions, but the entire Program remains governed by\n this License without regard to the additional permissions.\n\n   When you convey a copy of a covered work, you may at your option\n remove any additional permissions from that copy, or from any part of\n it.  (Additional permissions may be written to require their own\n removal in certain cases when you modify the work.)  You may place\n additional permissions on material, added by you to a covered work,\n for which you have or can give appropriate copyright permission.\n\n   Notwithstanding any other provision of this License, for material you\n add to a covered work, you may (if authorized by the copyright holders of\n that material) supplement the terms of this License with terms:\n\n     a) Disclaiming warranty or limiting liability differently from the\n     terms of sections 15 and 16 of this License; or\n\n     b) Requiring preservation of specified reasonable legal notices or\n     author attributions in that material or in the Appropriate Legal\n     Notices displayed by works containing it; or\n\n     c) Prohibiting misrepresentation of the origin of that material, or\n     requiring that modified versions of such material be marked in\n     reasonable ways as different from the original version; or\n\n     d) Limiting the use for publicity purposes of names of licensors or\n     authors of the material; or\n\n     e) Declining to grant rights under trademark law for use of some\n     trade names, trademarks, or service marks; or\n\n     f) Requiring indemnification of licensors and authors of that\n     material by anyone who conveys the material (or modified versions of\n     it) with contractual assumptions of liability to the recipient, for\n     any liability that these contractual assumptions directly impose on\n     those licensors and authors.\n\n   All other non-permissive additional terms are considered \"further\n restrictions\" within the meaning of section 10.  If the Program as you\n received it, or any part of it, contains a notice stating that it is\n governed by this License along with a term that is a further\n restriction, you may remove that term.  If a license document contains\n a further restriction but permits relicensing or conveying under this\n License, you may add to a covered work material governed by the terms\n of that license document, provided that the further restriction does\n not survive such relicensing or conveying.\n\n   If you add terms to a covered work in accord with this section, you\n must place, in the relevant source files, a statement of the\n additional terms that apply to those files, or a notice indicating\n where to find the applicable terms.\n\n   Additional terms, permissive or non-permissive, may be stated in the\n form of a separately written license, or stated as exceptions;\n the above requirements apply either way.\n\n   8. Termination.\n\n   You may not propagate or modify a covered work except as expressly\n provided under this License.  Any attempt otherwise to propagate or\n modify it is void, and will automatically terminate your rights under\n this License (including any patent licenses granted under the third\n paragraph of section 11).\n\n   However, if you cease all violation of this License, then your\n license from a particular copyright holder is reinstated (a)\n provisionally, unless and until the copyright holder explicitly and\n finally terminates your license, and (b) permanently, if the copyright\n holder fails to notify you of the violation by some reasonable means\n prior to 60 days after the cessation.\n\n   Moreover, your license from a particular copyright holder is\n reinstated permanently if the copyright holder notifies you of the\n violation by some reasonable means, this is the first time you have\n received notice of violation of this License (for any work) from that\n copyright holder, and you cure the violation prior to 30 days after\n your receipt of the notice.\n\n   Termination of your rights under this section does not terminate the\n licenses of parties who have received copies or rights from you under\n this License.  If your rights have been terminated and not permanently\n reinstated, you do not qualify to receive new licenses for the same\n material under section 10.\n\n   9. Acceptance Not Required for Having Copies.\n\n   You are not required to accept this License in order to receive or\n run a copy of the Program.  Ancillary propagation of a covered work\n occurring solely as a consequence of using peer-to-peer transmission\n to receive a copy likewise does not require acceptance.  However,\n nothing other than this License grants you permission to propagate or\n modify any covered work.  These actions infringe copyright if you do\n not accept this License.  Therefore, by modifying or propagating a\n covered work, you indicate your acceptance of this License to do so.\n\n   10. Automatic Licensing of Downstream Recipients.\n\n   Each time you convey a covered work, the recipient automatically\n receives a license from the original licensors, to run, modify and\n propagate that work, subject to this License.  You are not responsible\n for enforcing compliance by third parties with this License.\n\n   An \"entity transaction\" is a transaction transferring control of an\n organization, or substantially all assets of one, or subdividing an\n organization, or merging organizations.  If propagation of a covered\n work results from an entity transaction, each party to that\n transaction who receives a copy of the work also receives whatever\n licenses to the work the party's predecessor in interest had or could\n give under the previous paragraph, plus a right to possession of the\n Corresponding Source of the work from the predecessor in interest, if\n the predecessor has it or can get it with reasonable efforts.\n\n   You may not impose any further restrictions on the exercise of the\n rights granted or affirmed under this License.  For example, you may\n not impose a license fee, royalty, or other charge for exercise of\n rights granted under this License, and you may not initiate litigation\n (including a cross-claim or counterclaim in a lawsuit) alleging that\n any patent claim is infringed by making, using, selling, offering for\n sale, or importing the Program or any portion of it.\n\n   11. Patents.\n\n   A \"contributor\" is a copyright holder who authorizes use under this\n License of the Program or a work on which the Program is based.  The\n work thus licensed is called the contributor's \"contributor version\".\n\n   A contributor's \"essential patent claims\" are all patent claims\n owned or controlled by the contributor, whether already acquired or\n hereafter acquired, that would be infringed by some manner, permitted\n by this License, of making, using, or selling its contributor version,\n but do not include claims that would be infringed only as a\n consequence of further modification of the contributor version.  For\n purposes of this definition, \"control\" includes the right to grant\n patent sublicenses in a manner consistent with the requirements of\n this License.\n\n   Each contributor grants you a non-exclusive, worldwide, royalty-free\n patent license under the contributor's essential patent claims, to\n make, use, sell, offer for sale, import and otherwise run, modify and\n propagate the contents of its contributor version.\n\n   In the following three paragraphs, a \"patent license\" is any express\n agreement or commitment, however denominated, not to enforce a patent\n (such as an express permission to practice a patent or covenant not to\n sue for patent infringement).  To \"grant\" such a patent license to a\n party means to make such an agreement or commitment not to enforce a\n patent against the party.\n\n   If you convey a covered work, knowingly relying on a patent license,\n and the Corresponding Source of the work is not available for anyone\n to copy, free of charge and under the terms of this License, through a\n publicly available network server or other readily accessible means,\n then you must either (1) cause the Corresponding Source to be so\n available, or (2) arrange to deprive yourself of the benefit of the\n patent license for this particular work, or (3) arrange, in a manner\n consistent with the requirements of this License, to extend the patent\n license to downstream recipients.  \"Knowingly relying\" means you have\n actual knowledge that, but for the patent license, your conveying the\n covered work in a country, or your recipient's use of the covered work\n in a country, would infringe one or more identifiable patents in that\n country that you have reason to believe are valid.\n\n   If, pursuant to or in connection with a single transaction or\n arrangement, you convey, or propagate by procuring conveyance of, a\n covered work, and grant a patent license to some of the parties\n receiving the covered work authorizing them to use, propagate, modify\n or convey a specific copy of the covered work, then the patent license\n you grant is automatically extended to all recipients of the covered\n work and works based on it.\n\n   A patent license is \"discriminatory\" if it does not include within\n the scope of its coverage, prohibits the exercise of, or is\n conditioned on the non-exercise of one or more of the rights that are\n specifically granted under this License.  You may not convey a covered\n work if you are a party to an arrangement with a third party that is\n in the business of distributing software, under which you make payment\n to the third party based on the extent of your activity of conveying\n the work, and under which the third party grants, to any of the\n parties who would receive the covered work from you, a discriminatory\n patent license (a) in connection with copies of the covered work\n conveyed by you (or copies made from those copies), or (b) primarily\n for and in connection with specific products or compilations that\n contain the covered work, unless you entered into that arrangement,\n or that patent license was granted, prior to 28 March 2007.\n\n   Nothing in this License shall be construed as excluding or limiting\n any implied license or other defenses to infringement that may\n otherwise be available to you under applicable patent law.\n\n   12. No Surrender of Others' Freedom.\n\n   If conditions are imposed on you (whether by court order, agreement or\n otherwise) that contradict the conditions of this License, they do not\n excuse you from the conditions of this License.  If you cannot convey a\n covered work so as to satisfy simultaneously your obligations under this\n License and any other pertinent obligations, then as a consequence you may\n not convey it at all.  For example, if you agree to terms that obligate you\n to collect a royalty for further conveying from those to whom you convey\n the Program, the only way you could satisfy both those terms and this\n License would be to refrain entirely from conveying the Program.\n\n   13. Use with the GNU Affero General Public License.\n\n   Notwithstanding any other provision of this License, you have\n permission to link or combine any covered work with a work licensed\n under version 3 of the GNU Affero General Public License into a single\n combined work, and to convey the resulting work.  The terms of this\n License will continue to apply to the part which is the covered work,\n but the special requirements of the GNU Affero General Public License,\n section 13, concerning interaction through a network will apply to the\n combination as such.\n\n   14. Revised Versions of this License.\n\n   The Free Software Foundation may publish revised and/or new versions of\n the GNU General Public License from time to time.  Such new versions will\n be similar in spirit to the present version, but may differ in detail to\n address new problems or concerns.\n\n   Each version is given a distinguishing version number.  If the\n Program specifies that a certain numbered version of the GNU General\n Public License \"or any later version\" applies to it, you have the\n option of following the terms and conditions either of that numbered\n version or of any later version published by the Free Software\n Foundation.  If the Program does not specify a version number of the\n GNU General Public License, you may choose any version ever published\n by the Free Software Foundation.\n\n   If the Program specifies that a proxy can decide which future\n versions of the GNU General Public License can be used, that proxy's\n public statement of acceptance of a version permanently authorizes you\n to choose that version for the Program.\n\n   Later license versions may give you additional or different\n permissions.  However, no additional obligations are imposed on any\n author or copyright holder as a result of your choosing to follow a\n later version.\n\n   15. Disclaimer of Warranty.\n\n   THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY\n APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT\n HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY\n OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,\n THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM\n IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF\n ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\n   16. Limitation of Liability.\n\n   IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\n WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS\n THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY\n GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE\n USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF\n DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD\n PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),\n EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF\n SUCH DAMAGES.\n\n   17. Interpretation of Sections 15 and 16.\n\n   If the disclaimer of warranty and limitation of liability provided\n above cannot be given local legal effect according to their terms,\n reviewing courts shall apply local law that most closely approximates\n an absolute waiver of all civil liability in connection with the\n Program, unless a warranty or assumption of liability accompanies a\n copy of the Program in return for a fee.\n\n                      END OF TERMS AND CONDITIONS\n\n             How to Apply These Terms to Your New Programs\n\n   If you develop a new program, and you want it to be of the greatest\n possible use to the public, the best way to achieve this is to make it\n free software which everyone can redistribute and change under these terms.\n\n   To do so, attach the following notices to the program.  It is safest\n to attach them to the start of each source file to most effectively\n state the exclusion of warranty; and each file should have at least\n the \"copyright\" line and a pointer to where the full notice is found.\n\n     <one line to give the program's name and a brief idea of what it does.>\n     Copyright (C) <year>  <name of author>\n\n     This program is free software: you can redistribute it and/or modify\n     it under the terms of the GNU General Public License as published by\n     the Free Software Foundation, either version 3 of the License, or\n     (at your option) any later version.\n\n     This program is distributed in the hope that it will be useful,\n     but WITHOUT ANY WARRANTY; without even the implied warranty of\n     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n     GNU General Public License for more details.\n\n     You should have received a copy of the GNU General Public License\n     along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n Also add information on how to contact you by electronic and paper mail.\n\n   If the program does terminal interaction, make it output a short\n notice like this when it starts in an interactive mode:\n\n     <program>  Copyright (C) <year>  <name of author>\n     This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n     This is free software, and you are welcome to redistribute it\n     under certain conditions; type `show c' for details.\n\n The hypothetical commands `show w' and `show c' should show the appropriate\n parts of the General Public License.  Of course, your program's commands\n might be different; for a GUI interface, you would use an \"about box\".\n\n   You should also get your employer (if you work as a programmer) or school,\n if any, to sign a \"copyright disclaimer\" for the program, if necessary.\n For more information on this, and how to apply and follow the GNU GPL, see\n <http://www.gnu.org/licenses/>.\n\n   The GNU General Public License does not permit incorporating your program\n into proprietary programs.  If your program is a subroutine library, you\n may consider it more useful to permit linking proprietary applications with\n the library.  If this is what you want to do, use the GNU Lesser General\n Public License instead of this License.  But first, please read\n <http://www.gnu.org/philosophy/why-not-lgpl.html>.\n\n",
       "license_files": [
         {
           "path": "tools/ai-license-notices/numpy/0-LICENSE.txt",
@@ -336,7 +444,25 @@
       "wheel_url": "https://files.pythonhosted.org/packages/36/fa/8c9210162ca1b88529ab76b41ba02d433fd54fecaf6feb70ef9f124683f1/numpy-2.2.6-cp312-cp312-win_amd64.whl",
       "wheel_filename": "numpy-2.2.6-cp312-cp312-win_amd64.whl",
       "wheel_sha256": "c1f9540be57940698ed329904db803cf7a402f3fc200bfe599334c9bd84a40b2",
-      "wheel_size_bytes": 12614190
+      "wheel_size_bytes": 12614190,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "numpy-2.2.6-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/36/fa/8c9210162ca1b88529ab76b41ba02d433fd54fecaf6feb70ef9f124683f1/numpy-2.2.6-cp312-cp312-win_amd64.whl",
+          "sha256": "c1f9540be57940698ed329904db803cf7a402f3fc200bfe599334c9bd84a40b2",
+          "metadata_source": "https://pypi.org/pypi/numpy/2.2.6/json",
+          "size_bytes": 12614190
+        },
+        {
+          "python": "3.13",
+          "filename": "numpy-2.2.6-cp313-cp313-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/cb/3b/d58c12eafcb298d4e6d0d40216866ab15f59e55d148a5658bb3132311fcf/numpy-2.2.6-cp313-cp313-win_amd64.whl",
+          "sha256": "b0544343a702fa80c95ad5d3d608ea3599dd54d4632df855e4c8d24eb6ecfa1c",
+          "size_bytes": 12610885,
+          "metadata_source": "https://pypi.org/pypi/numpy/2.2.6/json"
+        }
+      ]
     },
     {
       "name": "opencv-python-headless",
@@ -364,26 +490,44 @@
       "wheel_url": "https://files.pythonhosted.org/packages/f2/35/0858e9e71b36948eafbc5e835874b63e515179dc3b742cbe3d76bc683439/opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
       "wheel_filename": "opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
       "wheel_sha256": "86b413bdd6c6bf497832e346cd5371995de148e579b9774f8eba686dee3f5528",
-      "wheel_size_bytes": 38923559
+      "wheel_size_bytes": 38923559,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/f2/35/0858e9e71b36948eafbc5e835874b63e515179dc3b742cbe3d76bc683439/opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
+          "sha256": "86b413bdd6c6bf497832e346cd5371995de148e579b9774f8eba686dee3f5528",
+          "metadata_source": "https://pypi.org/pypi/opencv-python-headless/4.12.0.88/json",
+          "size_bytes": 38923559
+        },
+        {
+          "python": "3.13",
+          "filename": "opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/f2/35/0858e9e71b36948eafbc5e835874b63e515179dc3b742cbe3d76bc683439/opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl",
+          "sha256": "86b413bdd6c6bf497832e346cd5371995de148e579b9774f8eba686dee3f5528",
+          "size_bytes": 38923559,
+          "metadata_source": "https://pypi.org/pypi/opencv-python-headless/4.12.0.88/json"
+        }
+      ]
     },
     {
       "name": "pillow",
-      "version": "11.3.0",
+      "version": "12.3.0",
       "license_metadata": "MIT-CMU",
       "license_files": [
         {
           "path": "tools/ai-license-notices/pillow/0-LICENSE",
-          "installed_source": "pillow-11.3.0.dist-info/licenses/LICENSE",
-          "sha256": "19544bf53af689a3319a4fb5067370f0f0d68d2c5300a2157674f5ef8a4fd965"
+          "installed_source": "pillow-12.3.0.dist-info/licenses/LICENSE",
+          "sha256": "4f7866a74802c6326f81faff59a56546b6aec2b10b91973e0e9308de95e79857"
         }
       ],
       "project_urls": [
+        "Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
         "Changelog, https://github.com/python-pillow/Pillow/releases",
         "Documentation, https://pillow.readthedocs.io",
         "Funding, https://tidelift.com/subscription/pkg/pypi-pillow?utm_source=pypi-pillow&utm_medium=pypi",
         "Homepage, https://python-pillow.github.io",
         "Mastodon, https://fosstodon.org/@pillow",
-        "Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
         "Source, https://github.com/python-pillow/Pillow"
       ],
       "requires_dist": [
@@ -396,61 +540,199 @@
         "sphinxext-opengraph; extra == \"docs\"",
         "olefile; extra == \"fpx\"",
         "olefile; extra == \"mic\"",
+        "arro3-compute; extra == \"test-arrow\"",
+        "arro3-core; extra == \"test-arrow\"",
+        "nanoarrow; extra == \"test-arrow\"",
         "pyarrow; extra == \"test-arrow\"",
-        "check-manifest; extra == \"tests\"",
         "coverage>=7.4.2; extra == \"tests\"",
         "defusedxml; extra == \"tests\"",
         "markdown2; extra == \"tests\"",
         "olefile; extra == \"tests\"",
         "packaging; extra == \"tests\"",
-        "pyroma; extra == \"tests\"",
         "pytest; extra == \"tests\"",
         "pytest-cov; extra == \"tests\"",
         "pytest-timeout; extra == \"tests\"",
         "pytest-xdist; extra == \"tests\"",
+        "setuptools; extra == \"tests\"",
         "trove-classifiers>=2024.10.12; extra == \"tests\"",
-        "typing-extensions; python_version < \"3.10\" and extra == \"typing\"",
         "defusedxml; extra == \"xmp\""
       ],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/pillow/11.3.0/json",
-      "wheel_url": "https://files.pythonhosted.org/packages/8c/ce/e7dfc873bdd9828f3b6e5c2bbb74e47a98ec23cc5c74fc4e54462f0d9204/pillow-11.3.0-cp312-cp312-win_amd64.whl",
-      "wheel_filename": "pillow-11.3.0-cp312-cp312-win_amd64.whl",
-      "wheel_sha256": "a6444696fce635783440b7f7a9fc24b3ad10a9ea3f0ab66c5905be1c19ccf17d",
-      "wheel_size_bytes": 6986324
+      "metadata_source": "https://pypi.org/pypi/pillow/12.3.0/json",
+      "wheel_url": "https://files.pythonhosted.org/packages/45/89/da2f7971a317f83d807fdd4065c0af40208e59e692cc43d315a71a0e96d1/pillow-12.3.0-cp312-cp312-win_amd64.whl",
+      "wheel_filename": "pillow-12.3.0-cp312-cp312-win_amd64.whl",
+      "wheel_sha256": "a2b55dd6b2a4c4b7d87ffa56bdb33fdc5fdb9a462173861a7bc097f17d91cb09",
+      "wheel_size_bytes": 7227137,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "pillow-12.3.0-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/45/89/da2f7971a317f83d807fdd4065c0af40208e59e692cc43d315a71a0e96d1/pillow-12.3.0-cp312-cp312-win_amd64.whl",
+          "sha256": "a2b55dd6b2a4c4b7d87ffa56bdb33fdc5fdb9a462173861a7bc097f17d91cb09",
+          "metadata_source": "https://pypi.org/pypi/pillow/12.3.0/json",
+          "size_bytes": 7227137
+        },
+        {
+          "python": "3.13",
+          "filename": "pillow-12.3.0-cp313-cp313-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/a6/9b/7a58e61d62be561da3a356fe2384d4059a6345fc130e23ef1c36a5b81d24/pillow-12.3.0-cp313-cp313-win_amd64.whl",
+          "sha256": "1cca606cd25738df4ed873d5ad46bbdb3d83b5cbca291f6b4ff13a4df6b0bbe8",
+          "size_bytes": 7239691,
+          "metadata_source": "https://pypi.org/pypi/pillow/12.3.0/json"
+        }
+      ]
     },
     {
       "name": "pip",
-      "version": "23.2.1",
+      "version": "26.2",
       "license_metadata": "MIT",
       "license_files": [
         {
           "path": "tools/ai-license-notices/pip/0-LICENSE.txt",
-          "installed_source": "pip-23.2.1.dist-info/LICENSE.txt",
+          "installed_source": "pip-26.2.dist-info/licenses/LICENSE.txt",
           "sha256": "634300a669d49aeae65b12c6c48c924c51a4cdf3d1ff086dc3456dc8bcaa2104"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/1-LICENSE.txt",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/cachecontrol/LICENSE.txt",
+          "sha256": "86eeee87be2a43f3ff1f56496f451f69243926f025fedbb033666c304c4c161b"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/2-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/certifi/LICENSE",
+          "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/3-LICENSE.txt",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/distlib/LICENSE.txt",
+          "sha256": "808e10c8a6ab8deb149ff9b3fb19f447a808094606d712a9ca57fead3552599d"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/4-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/distro/LICENSE",
+          "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/5-LICENSE.md",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md",
+          "sha256": "1a9a4f0e3d479a27240ddd59a9137a66ab4a0f9dfdc8ca6188cc0bfd85187f04"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/6-COPYING",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/msgpack/COPYING",
+          "sha256": "492dedba85da5872f78e6091bcd1fea474d660d35acb4dee964b8aab3f007427"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/7-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE",
+          "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/8-LICENSE.APACHE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE.APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/9-LICENSE.BSD",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE.BSD",
+          "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/10-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/pkg_resources/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/11-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/platformdirs/LICENSE",
+          "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/12-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/pygments/LICENSE",
+          "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/13-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/pyproject_hooks/LICENSE",
+          "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/14-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/requests/LICENSE",
+          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/15-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/resolvelib/LICENSE",
+          "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/16-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/rich/LICENSE",
+          "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/17-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/tomli/LICENSE",
+          "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/18-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/tomli_w/LICENSE",
+          "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/19-LICENSE",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/truststore/LICENSE",
+          "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca"
+        },
+        {
+          "path": "tools/ai-license-notices/pip/20-LICENSE.txt",
+          "installed_source": "pip-26.2.dist-info/licenses/src/pip/_vendor/urllib3/LICENSE.txt",
+          "sha256": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686"
         }
       ],
       "project_urls": [
+        "Changelog, https://pip.pypa.io/en/stable/news/",
         "Documentation, https://pip.pypa.io",
-        "Source, https://github.com/pypa/pip",
-        "Changelog, https://pip.pypa.io/en/stable/news/"
+        "Homepage, https://pip.pypa.io/",
+        "Source, https://github.com/pypa/pip"
       ],
       "requires_dist": [],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/pip/23.2.1/json",
-      "wheel_url": "https://files.pythonhosted.org/packages/50/c2/e06851e8cc28dcad7c155f4753da8833ac06a5c704c109313b8d5a62968a/pip-23.2.1-py3-none-any.whl",
-      "wheel_filename": "pip-23.2.1-py3-none-any.whl",
-      "wheel_sha256": "7ccf472345f20d35bdc9d1841ff5f313260c2c33fe417f48c30ac46cccabf5be",
-      "wheel_size_bytes": 2086091
+      "metadata_source": "https://pypi.org/pypi/pip/26.2/json",
+      "wheel_url": "https://files.pythonhosted.org/packages/62/36/a3aed958d60531cb442b7ab4596cda7b3621cfb916f8ae1d6769795c7dc1/pip-26.2-py3-none-any.whl",
+      "wheel_filename": "pip-26.2-py3-none-any.whl",
+      "wheel_sha256": "931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad",
+      "wheel_size_bytes": 1816475,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "pip-26.2-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/36/a3aed958d60531cb442b7ab4596cda7b3621cfb916f8ae1d6769795c7dc1/pip-26.2-py3-none-any.whl",
+          "sha256": "931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad",
+          "metadata_source": "https://pypi.org/pypi/pip/26.2/json",
+          "size_bytes": 1816475
+        },
+        {
+          "python": "3.13",
+          "filename": "pip-26.2-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/36/a3aed958d60531cb442b7ab4596cda7b3621cfb916f8ae1d6769795c7dc1/pip-26.2-py3-none-any.whl",
+          "sha256": "931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad",
+          "size_bytes": 1816475,
+          "metadata_source": "https://pypi.org/pypi/pip/26.2/json"
+        }
+      ]
     },
     {
       "name": "setuptools",
-      "version": "78.1.0",
-      "license_metadata": "See bundled license notices",
+      "version": "83.0.0",
+      "license_metadata": "MIT",
       "license_files": [
         {
           "path": "tools/ai-license-notices/setuptools/0-LICENSE",
-          "installed_source": "setuptools-78.1.0.dist-info/licenses/LICENSE",
+          "installed_source": "setuptools-83.0.0.dist-info/licenses/LICENSE",
           "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
         },
         {
@@ -465,83 +747,63 @@
         },
         {
           "path": "tools/ai-license-notices/setuptools/3-LICENSE",
-          "installed_source": "setuptools/_vendor/importlib_metadata-8.0.0.dist-info/LICENSE",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+          "installed_source": "setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE",
+          "sha256": "458502e12d97bbf64438606a20044aa85eb05fb0a8a807bb35dbec253fd1fc04"
         },
         {
           "path": "tools/ai-license-notices/setuptools/4-LICENSE",
-          "installed_source": "setuptools/_vendor/inflect-7.3.1.dist-info/LICENSE",
+          "installed_source": "setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE",
           "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
         },
         {
           "path": "tools/ai-license-notices/setuptools/5-LICENSE",
-          "installed_source": "setuptools/_vendor/jaraco.collections-5.1.0.dist-info/LICENSE",
-          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+          "installed_source": "setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE",
+          "sha256": "9755a18519666e5f0f4cae3daad3d7012bcae48a600b31237d75e9fe134e6683"
         },
         {
           "path": "tools/ai-license-notices/setuptools/6-LICENSE",
-          "installed_source": "setuptools/_vendor/jaraco.context-5.3.0.dist-info/LICENSE",
-          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+          "installed_source": "setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE",
+          "sha256": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d"
         },
         {
           "path": "tools/ai-license-notices/setuptools/7-LICENSE",
-          "installed_source": "setuptools/_vendor/jaraco.functools-4.0.1.dist-info/LICENSE",
-          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
-        },
-        {
-          "path": "tools/ai-license-notices/setuptools/8-LICENSE",
-          "installed_source": "setuptools/_vendor/jaraco.text-3.12.1.dist-info/LICENSE",
-          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
-        },
-        {
-          "path": "tools/ai-license-notices/setuptools/9-LICENSE",
-          "installed_source": "setuptools/_vendor/more_itertools-10.3.0.dist-info/LICENSE",
+          "installed_source": "setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE",
           "sha256": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/10-LICENSE",
-          "installed_source": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE",
+          "path": "tools/ai-license-notices/setuptools/8-LICENSE",
+          "installed_source": "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE",
           "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/11-LICENSE.APACHE",
-          "installed_source": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE.APACHE",
+          "path": "tools/ai-license-notices/setuptools/9-LICENSE.APACHE",
+          "installed_source": "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.APACHE",
           "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/12-LICENSE.BSD",
-          "installed_source": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE.BSD",
+          "path": "tools/ai-license-notices/setuptools/10-LICENSE.BSD",
+          "installed_source": "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.BSD",
           "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/13-LICENSE",
-          "installed_source": "setuptools/_vendor/platformdirs-4.2.2.dist-info/licenses/LICENSE",
+          "path": "tools/ai-license-notices/setuptools/11-LICENSE",
+          "installed_source": "setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE",
           "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/14-LICENSE",
-          "installed_source": "setuptools/_vendor/tomli-2.0.1.dist-info/LICENSE",
+          "path": "tools/ai-license-notices/setuptools/12-LICENSE",
+          "installed_source": "setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE",
           "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/15-LICENSE",
-          "installed_source": "setuptools/_vendor/typeguard-4.3.0.dist-info/LICENSE",
-          "sha256": "6163f7987dfb38d6bc320ce2b70b2f02b862bc41126516d552ef1cd43247e758"
-        },
-        {
-          "path": "tools/ai-license-notices/setuptools/16-LICENSE",
-          "installed_source": "setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE",
-          "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
-        },
-        {
-          "path": "tools/ai-license-notices/setuptools/17-LICENSE.txt",
-          "installed_source": "setuptools/_vendor/wheel-0.45.1.dist-info/LICENSE.txt",
+          "path": "tools/ai-license-notices/setuptools/13-LICENSE.txt",
+          "installed_source": "setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt",
           "sha256": "30c23618679108f3e8ea1d2a658c7ca417bdfc891c98ef1a89fa4ff0c9828654"
         },
         {
-          "path": "tools/ai-license-notices/setuptools/18-LICENSE",
-          "installed_source": "setuptools/_vendor/zipp-3.19.2.dist-info/LICENSE",
-          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+          "path": "tools/ai-license-notices/setuptools/14-LICENSE",
+          "installed_source": "setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE",
+          "sha256": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d"
         }
       ],
       "project_urls": [
@@ -589,25 +851,42 @@
         "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
         "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
         "wheel>=0.43.0; extra == \"core\"",
-        "platformdirs>=4.2.2; extra == \"core\"",
         "jaraco.functools>=4; extra == \"core\"",
         "more_itertools; extra == \"core\"",
-        "pytest-checkdocs>=2.4; extra == \"check\"",
+        "pytest-checkdocs>=2.14; extra == \"check\"",
         "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
-        "ruff>=0.8.0; sys_platform != \"cygwin\" and extra == \"check\"",
+        "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
         "pytest-cov; extra == \"cover\"",
-        "pytest-enabler>=2.2; extra == \"enabler\"",
-        "pytest-mypy; extra == \"type\"",
-        "mypy==1.14.*; extra == \"type\"",
+        "pytest-enabler>=3.4; extra == \"enabler\"",
+        "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\"",
+        "mypy==1.18.*; extra == \"type\"",
         "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
         "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
       ],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/setuptools/78.1.0/json",
-      "wheel_url": "https://files.pythonhosted.org/packages/54/21/f43f0a1fa8b06b32812e0975981f4677d28e0f3271601dc88ac5a5b83220/setuptools-78.1.0-py3-none-any.whl",
-      "wheel_filename": "setuptools-78.1.0-py3-none-any.whl",
-      "wheel_sha256": "3e386e96793c8702ae83d17b853fb93d3e09ef82ec62722e61da5cd22376dcd8",
-      "wheel_size_bytes": 1256108
+      "metadata_source": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "wheel_url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+      "wheel_filename": "setuptools-83.0.0-py3-none-any.whl",
+      "wheel_sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+      "wheel_size_bytes": 1008090,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "setuptools-83.0.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+          "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+          "metadata_source": "https://pypi.org/pypi/setuptools/83.0.0/json",
+          "size_bytes": 1008090
+        },
+        {
+          "python": "3.13",
+          "filename": "setuptools-83.0.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+          "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+          "size_bytes": 1008090,
+          "metadata_source": "https://pypi.org/pypi/setuptools/83.0.0/json"
+        }
+      ]
     },
     {
       "name": "sympy",
@@ -633,22 +912,505 @@
       "wheel_url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
       "wheel_filename": "sympy-1.14.0-py3-none-any.whl",
       "wheel_sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
-      "wheel_size_bytes": 6299353
+      "wheel_size_bytes": 6299353,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "sympy-1.14.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
+          "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+          "metadata_source": "https://pypi.org/pypi/sympy/1.14.0/json",
+          "size_bytes": 6299353
+        },
+        {
+          "python": "3.13",
+          "filename": "sympy-1.14.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
+          "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+          "size_bytes": 6299353,
+          "metadata_source": "https://pypi.org/pypi/sympy/1.14.0/json"
+        }
+      ]
     },
     {
       "name": "torch",
-      "version": "2.9.1+cu128",
-      "license_metadata": "BSD-3-Clause",
+      "version": "2.14.0+cu126",
+      "license_metadata": "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT",
       "license_files": [
         {
           "path": "tools/ai-license-notices/torch/0-LICENSE",
-          "installed_source": "torch-2.9.1+cu128.dist-info/LICENSE",
-          "sha256": "61ebd22a90ad993ee4fa372cd91dca44fe04519f0259c5440f556d9237535007"
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/LICENSE",
+          "sha256": "0fc92425d130d9c87a5eb7427082e3afdbff6ef169bc678e15abba4c2d37c934"
         },
         {
-          "path": "tools/ai-license-notices/torch/1-NOTICE",
-          "installed_source": "torch-2.9.1+cu128.dist-info/NOTICE",
-          "sha256": "1c3dec6c0342c7ed9e12af59b296c7bb1d394af5cf881db74191cc8299efce5c"
+          "path": "tools/ai-license-notices/torch/1-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/FP16/LICENSE",
+          "sha256": "68349589306bdfa3631ac7f84633956bf21b6a448ed5e43383ea75a8a5f54e4c"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/2-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/FXdiv/LICENSE",
+          "sha256": "9e7b48284b1aef91999d1967d093711bab8f3bbbaf31e0670ab7a3af077c0a2b"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/3-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NNPACK/LICENSE",
+          "sha256": "a4dadeb3d59219de6cdf5cb6bf920760103eed9ae5af2e71b0e8462645397b66"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/4-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NVTX/LICENSE.txt",
+          "sha256": "c3b19baa37cf18bac07b65700824acadcfa617316f02af10d3852ed20f4f6ab8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/5-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NVTX/docs/LICENSE.txt",
+          "sha256": "c3b19baa37cf18bac07b65700824acadcfa617316f02af10d3852ed20f4f6ab8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/6-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NVTX/python/LICENSE.txt",
+          "sha256": "c3b19baa37cf18bac07b65700824acadcfa617316f02af10d3852ed20f4f6ab8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/7-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NVTX/rust/LICENSE",
+          "sha256": "4baebe905073b57ce85f6a0aeb242cac589181f6574c0dc87993c25d9bcf4775"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/8-license",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/NVTX/tools/docs/github-markdown-css/license",
+          "sha256": "fcf1a18be2e25ba82acf2c59821b030d8ee764e4e201db6ef3c51900d385515f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/9-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/VulkanMemoryAllocator/LICENSE.txt",
+          "sha256": "e5fc8b0b0357a75d63649c8f2552576aaa6941c361a013710bb53afc64d3a8aa"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/10-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/XNNPACK/LICENSE",
+          "sha256": "4805a18e3c617424da5b7f6d8b9fde3df2fb6a5e26a6b6663a6cdb66db664d8c"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/11-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/aiter/3rdparty/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/12-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/aiter/3rdparty/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/13-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/aiter/LICENSE",
+          "sha256": "844e3a38ca6f748e10eb63f07eb343ddca3b5a0a6bb40b0f621fcc54ea03deb3"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/14-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/benchmark/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/15-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/16-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/17-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cpp-httplib/LICENSE",
+          "sha256": "bb546eae5924d8ee842e0e567e6d533c5824bdebccf605f99a5b3429034e6697"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/18-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cpuinfo/LICENSE",
+          "sha256": "8477bdd6a4d9f5178e5dfda1e32239c7b09c9d6da3804ae3e5c1a80210c0dd21"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/19-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cpuinfo/deps/clog/LICENSE",
+          "sha256": "8c29231fd0034d4b1caaae8c0a63bce71f95cd8c4b0494c8588930b75c3d2155"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/20-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cudnn_frontend/LICENSE.txt",
+          "sha256": "b6fe452605fe29245f0cbafa724b42df94a5e170bedb9d45bc9cfaa4883ad907"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/21-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cutlass/LICENSE.txt",
+          "sha256": "10e174914fb737aec2d32762bd2e45861acb5ebf1656bee6cf575a6019a08cf0"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/22-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/cutlass/python/LICENSE.txt",
+          "sha256": "932c16f6c4f0187eda3af18df07300f8807eda85ca974bf46c5ed11fd91e5c2f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/23-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/LICENSE",
+          "sha256": "5d5d5b022ecf828c796a64ad7afcfd62971bf58a52b71668cd48137ca02824c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/24-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/25-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/26-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/cpuinfo/LICENSE",
+          "sha256": "8477bdd6a4d9f5178e5dfda1e32239c7b09c9d6da3804ae3e5c1a80210c0dd21"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/27-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/cpuinfo/deps/clog/LICENSE",
+          "sha256": "8c29231fd0034d4b1caaae8c0a63bce71f95cd8c4b0494c8588930b75c3d2155"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/28-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/cutlass/LICENSE.txt",
+          "sha256": "3288ff56f62ade1ef032bd860b6d92482f83f1d3073ad5125b87228b9c11e0a8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/29-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/cutlass/python/LICENSE.txt",
+          "sha256": "6b9e8b964c2a90f7743107a23bccec9ebc6f5a47d4a8fa3d986aa6f51f86da68"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/30-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/31-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/external/hipify_torch/LICENSE.txt",
+          "sha256": "e63d8a0f5ab5cc02d848c6ef51b7bea58644a07223aa0acdb905260a1031b2e6"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/32-License.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/fbgemm_gpu/docs/src/general/License.rst",
+          "sha256": "4f8f489489bc1ac9608b13243e6dbeb28070cefd6da94de0784cc919afbf10f6"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/33-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/fbgemm_gpu/experimental/hstu/LICENSE",
+          "sha256": "c364d38c8ee8070159ad68f56a8bab4917b8d020548da33a01e036505c8e4add"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/34-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/fbgemm_gpu/src/quantize_ops/mx/LICENSE",
+          "sha256": "9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/35-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fbgemm/fbgemm_gpu/test/quantize/mx/LICENSE",
+          "sha256": "9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/36-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/LICENSE",
+          "sha256": "c364d38c8ee8070159ad68f56a8bab4917b8d020548da33a01e036505c8e4add"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/37-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/csrc/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/38-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/csrc/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/39-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/csrc/cutlass/LICENSE.txt",
+          "sha256": "3288ff56f62ade1ef032bd860b6d92482f83f1d3073ad5125b87228b9c11e0a8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/40-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/csrc/cutlass/python/LICENSE.txt",
+          "sha256": "6b9e8b964c2a90f7743107a23bccec9ebc6f5a47d4a8fa3d986aa6f51f86da68"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/41-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/flash_attn/cute/LICENSE",
+          "sha256": "c364d38c8ee8070159ad68f56a8bab4917b8d020548da33a01e036505c8e4add"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/42-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/third_party/aiter/3rdparty/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/43-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/third_party/aiter/3rdparty/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/44-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flash-attention/third_party/aiter/LICENSE",
+          "sha256": "844e3a38ca6f748e10eb63f07eb343ddca3b5a0a6bb40b0f621fcc54ea03deb3"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/45-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flatbuffers/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/46-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flatbuffers/dart/LICENSE",
+          "sha256": "35cf0c0dca02767d12b9a8c12ae1b6a1c08045f220df4a52b0e01563a568fe6b"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/47-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/flatbuffers/swift/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/48-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/fmt/LICENSE",
+          "sha256": "e53b24254a17f6acdaf967557c287dca7e920b22cc6290f6a84d57c34d942a6e"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/49-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/gemmlowp/gemmlowp/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/50-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/gloo/LICENSE",
+          "sha256": "6247f690b423835966eba51cad47b4c7d6a72ca226733dd1c473e4624fe6bb23"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/51-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/52-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/ideep/LICENSE",
+          "sha256": "e1b43a11adfb7a5bd52089243a273ab85f0a695d0437bb34a418969501392573"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/53-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/ideep/mkl-dnn/LICENSE",
+          "sha256": "b1dd911e534a75dd4dfd8dbc11a3193bd177c8390e7fcf462f98d2c8c235e112"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/54-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/ideep/mkl-dnn/third_party/gtest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/55-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/ideep/mkl-dnn/third_party/opencl/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/56-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/kineto/LICENSE",
+          "sha256": "97729794764240cc12e0e22fe31b0cea824741c601bd09bd91b832e285e1f8c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/57-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/kineto/libkineto/third_party/dynolog_headers/LICENSE",
+          "sha256": "f08a94bfb0bdc1d7f1cb59badaf0f8c551b10db871185622dbf1fd036affa9cb"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/58-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/kineto/libkineto/third_party/fmt/LICENSE",
+          "sha256": "25b5db04aa6070c12ac518b91cbd0a59725c050ecb091456e6ebc3d3eeb369cf"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/59-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/kineto/libkineto/third_party/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/60-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/llvm-openmp/LICENSE.txt",
+          "sha256": "eb3eab74fe9245818659556acf23e81b8c8a24915a4a244a23804f3fcdf1fd9c"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/61-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mimalloc/LICENSE",
+          "sha256": "82ade5d7d9b029044b5fbbc326207fc47c2d44ee4dd71e8a559c36d728217de9"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/62-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/miniz-3.0.2/LICENSE",
+          "sha256": "0115478d567121238cf6cc1c0c361926cf07a49d9e4c9e66da97fac6a01646b3"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/63-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/LICENSE",
+          "sha256": "322bba2f33f594948052de342fd7d5bd26892e2a92ba75fbb5a433eff0b229c7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/64-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/composable_kernel/LICENSE",
+          "sha256": "99ec4452f4047b6c53016a502bf94451eb317eff5aab5f63cebc16f94020d64f"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/65-license.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/composable_kernel/docs/license.rst",
+          "sha256": "81c3c62d810d7277f0583179df2a28a997b013f389f97778e9e7480114e0ca06"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/66-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/cutlass/LICENSE.txt",
+          "sha256": "3288ff56f62ade1ef032bd860b6d92482f83f1d3073ad5125b87228b9c11e0a8"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/67-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/cutlass/python/LICENSE.txt",
+          "sha256": "6b9e8b964c2a90f7743107a23bccec9ebc6f5a47d4a8fa3d986aa6f51f86da68"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/68-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/69-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/external/hipify_torch/LICENSE.txt",
+          "sha256": "e63d8a0f5ab5cc02d848c6ef51b7bea58644a07223aa0acdb905260a1031b2e6"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/70-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/mslk/mslk/attention/flash_attn/LICENSE",
+          "sha256": "c364d38c8ee8070159ad68f56a8bab4917b8d020548da33a01e036505c8e4add"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/71-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/onnx/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/72-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/onnx/third_party/pybind11/LICENSE",
+          "sha256": "5494773a5dcf654c0c3c844fbb11cfc4f898ea0ea44cf467f29e5c99097da6e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/73-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/perfetto/LICENSE",
+          "sha256": "6bef87f6b4eda6c3cf0f42f780967e192df6412e4933f0ffb106638629aa3364"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/74-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/LICENSE",
+          "sha256": "f4df8b2457697851385d9ebb93267832c1dfa24e0e61881952f6b0c452663dc9"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/75-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/benchmark/LICENSE",
+          "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/76-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/77-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/googletest/googlemock/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/78-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/googletest/googlemock/scripts/generator/LICENSE",
+          "sha256": "e438ef741bf3660b5c54f4452d7c0b387c8557207cc3e9cda499e461a94df2b2"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/79-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/googletest/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/80-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/protobuf/third_party/utf8_range/LICENSE",
+          "sha256": "2317ba964cb26897602b47271a156b2c9ee140d923fa25e8f2229f20d6f3a819"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/81-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/psimd/LICENSE",
+          "sha256": "6bc97741b2f00a1d0a2f8e9be4c8af7ff837f968fe8e494864caf57026cfdbcb"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/82-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/pthreadpool/LICENSE",
+          "sha256": "2aae36e3c88f88b5e8afff5ca8d05480745ba7ad7e8d62867293c604efc0ce46"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/83-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/pybind11/LICENSE",
+          "sha256": "5494773a5dcf654c0c3c844fbb11cfc4f898ea0ea44cf467f29e5c99097da6e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/84-LICENSE.rst",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/python-peachpy/LICENSE.rst",
+          "sha256": "b74018ea5fe273c10868dec1c5b832865fa4cf5bc44715a004d172e0a49a3f23"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/85-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/sleef/LICENSE.txt",
+          "sha256": "beb8e42e9d6b4284e03304d05a81a0755200a965fc8d0a5e0aea1e84cf805d6e"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/86-LICENSE.txt",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/LICENSE.txt",
+          "sha256": "a51531fad20e44cae492c601bc0997d961c17a74f25f9473ff62eb70e108277d"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/87-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/88-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/googletest/googlemock/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/89-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/googletest/googlemock/scripts/generator/LICENSE",
+          "sha256": "e438ef741bf3660b5c54f4452d7c0b387c8557207cc3e9cda499e461a94df2b2"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/90-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/googletest/googletest/LICENSE",
+          "sha256": "46c35a3c9ac8ef63c16ca69b5cf0166df9fcdb789e318175c92a219de517b8e7"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/91-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/libnop/LICENSE",
+          "sha256": "abd3ed80490d1d168f12f6ced5a558398640e6d375382c7b85d290689a222822"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/92-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/libuv/LICENSE",
+          "sha256": "7aab26dd7e0e6661accc1fd9fc19410e01b466aa0ac36ea668b2013152a8ca23"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/93-LICENSE",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/pybind11/LICENSE",
+          "sha256": "15619fd6ee80e905a159b8139f7791f5ae1dce142d5101d099404cc5cf1007ba"
+        },
+        {
+          "path": "tools/ai-license-notices/torch/94-LICENSE.TXT",
+          "installed_source": "torch-2.14.0+cu126.dist-info/licenses/third_party/tensorpipe/third_party/pybind11/tools/clang/LICENSE.TXT",
+          "sha256": "dcd8a8d43f2dc19ba6f879f3a7e96f59e66ecb195099f700dfdcfb50641c10c9"
         }
       ],
       "project_urls": [
@@ -661,29 +1423,44 @@
       "requires_dist": [
         "filelock",
         "typing-extensions>=4.10.0",
+        "setuptools>=77.0.3",
         "sympy>=1.13.3",
         "networkx>=2.5.1",
         "jinja2",
         "fsspec>=0.8.5",
-        "setuptools; python_version >= \"3.12\"",
-        "opt-einsum>=3.3; extra == \"opt-einsum\"",
         "optree>=0.13.0; extra == \"optree\"",
+        "opt-einsum>=3.3; extra == \"opt-einsum\"",
         "pyyaml; extra == \"pyyaml\""
       ],
-      "index_url": "https://download.pytorch.org/whl/cu128",
-      "metadata_source": "https://download.pytorch.org/whl/cu128/torch/",
-      "wheel_url": "https://download-r2.pytorch.org/whl/cu128/torch-2.9.1%2Bcu128-cp312-cp312-win_amd64.whl",
-      "wheel_filename": "torch-2.9.1+cu128-cp312-cp312-win_amd64.whl",
-      "wheel_sha256": "3a01f0b64c10a82d444d9fd06b3e8c567b1158b76b2764b8f51bfd8f535064b0",
-      "wheel_size_bytes": null
+      "index_url": "https://download.pytorch.org/whl/cu126",
+      "metadata_source": "https://download.pytorch.org/whl/cu126/torch/",
+      "wheel_url": "https://download-r2.pytorch.org/whl/cu126/torch-2.14.0%2Bcu126-cp312-cp312-win_amd64.whl",
+      "wheel_filename": "torch-2.14.0+cu126-cp312-cp312-win_amd64.whl",
+      "wheel_sha256": "11a492e40dfd18597fdb8271879a3a09496a23140deb81a6b5a005d9cff7312b",
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "torch-2.14.0+cu126-cp312-cp312-win_amd64.whl",
+          "url": "https://download-r2.pytorch.org/whl/cu126/torch-2.14.0%2Bcu126-cp312-cp312-win_amd64.whl",
+          "sha256": "11a492e40dfd18597fdb8271879a3a09496a23140deb81a6b5a005d9cff7312b",
+          "metadata_source": "https://download.pytorch.org/whl/cu126/torch/"
+        },
+        {
+          "python": "3.13",
+          "filename": "torch-2.14.0+cu126-cp313-cp313-win_amd64.whl",
+          "url": "https://download-r2.pytorch.org/whl/cu126/torch-2.14.0%2Bcu126-cp313-cp313-win_amd64.whl",
+          "sha256": "00d7da8a47c184fbc36cd56dd89153b61b37fdc89cf46fc1a2824c7ac1d60a53",
+          "metadata_source": "https://download.pytorch.org/whl/cu126/torch/"
+        }
+      ]
     },
     {
-      "name": "typing_extensions",
+      "name": "typing-extensions",
       "version": "4.16.0",
       "license_metadata": "PSF-2.0",
       "license_files": [
         {
-          "path": "tools/ai-license-notices/typing_extensions/0-LICENSE",
+          "path": "tools/ai-license-notices/typing-extensions/0-LICENSE",
           "installed_source": "typing_extensions-4.16.0.dist-info/licenses/LICENSE",
           "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
         }
@@ -698,12 +1475,31 @@
       ],
       "requires_dist": [],
       "index_url": "https://pypi.org/simple",
-      "metadata_source": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+      "metadata_source": "https://pypi.org/pypi/typing-extensions/4.16.0/json",
       "wheel_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
       "wheel_filename": "typing_extensions-4.16.0-py3-none-any.whl",
       "wheel_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
-      "wheel_size_bytes": 45571
+      "wheel_size_bytes": 45571,
+      "wheels": [
+        {
+          "python": "3.12",
+          "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+          "metadata_source": "https://pypi.org/pypi/typing-extensions/4.16.0/json",
+          "size_bytes": 45571
+        },
+        {
+          "python": "3.13",
+          "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+          "size_bytes": 45571,
+          "metadata_source": "https://pypi.org/pypi/typing-extensions/4.16.0/json"
+        }
+      ]
     }
   ],
-  "integrity_note": "Wheel SHA256 values are publisher/index-provided metadata, captured without downloading wheels again. Installed versions and bundled licenses were read from the tested environment; existing package bytes are not revalidated by the version check."
+  "integrity_note": "Every selected wheel uses the SHA256 published by PyPI or the official PyTorch CUDA12.6 index. All selected packages were checked against public PyPI advisory metadata at capture time; this is not a guarantee that unknown vulnerabilities are absent.",
+  "validation": "Isolated Windows CPython 3.12 and 3.13.15 installations; pip check; synthetic Real-ESRGAN, Places365 and Qwen video inference passed. Python 3.13.15 also passed fresh setup and forced package repair in a folder containing spaces and literal brackets. No FPV accuracy claim."
 }

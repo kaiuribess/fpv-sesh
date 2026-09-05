@@ -2,11 +2,11 @@
 from datetime import datetime, timezone
 from fractions import Fraction
 import math
-import os
 from pathlib import Path
 import uuid
 
 from .analysis import save_json
+from .control import acquire_run_lock
 from . import cuda_backend
 from .enhance import _detected_gpu, _fit_dimensions, _probe
 from .media import locate_tools, probe, validate_output
@@ -17,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def validate_ai(source, start=0, seconds=2, log=print):
     if not math.isfinite(start) or start < 0 or not math.isfinite(seconds) or not .5 <= seconds <= 5:
         raise ValueError("Choose a nonnegative start and a sample between 0.5 and 5 seconds")
+    # Reject outdated packages before reading footage, creating a validation
+    # job, probing hardware, or starting any model/encoder process.
+    cuda_backend.runtime_signature()
     for directory in ("logs", "cache"):
         (ROOT / directory).mkdir(exist_ok=True)
     source = Path(source).expanduser().resolve(strict=True)
@@ -41,18 +44,8 @@ def validate_ai(source, start=0, seconds=2, log=print):
     folder = ROOT / "logs" / ("ai-validation-" + uuid.uuid4().hex[:12])
     folder.mkdir()
     output = folder / "sample.mp4"
-    lock = (ROOT / "cache/run.lock").open("a+b")
+    lock = acquire_run_lock(ROOT / "cache")
     try:
-        lock.seek(0)
-        lock.write(b"0")
-        lock.flush()
-        lock.seek(0)
-        if os.name == "nt":
-            import msvcrt
-            try:
-                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-            except OSError as exc:
-                raise RuntimeError("Another FPV Sesh render is running") from exc
         (ROOT / "cache/control.json").unlink(missing_ok=True)
         log(f"Validating {frames} real frames using the installed CUDA model")
         record = cuda_backend.render(source, output, options, source_probe, _fit_dimensions(source_probe, 3840, 2160), log)

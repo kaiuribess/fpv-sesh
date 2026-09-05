@@ -38,7 +38,8 @@ class ToolchainTests(unittest.TestCase):
 
     def test_release_excludes_user_content_and_downloaded_code(self):
         for name in ("input/clip.mp4", "logs/report.json", "output/job/settings.json", "models/weights.pth",
-                     "tools/bin/ffmpeg.exe", ".env", ".env.production", ".venv/pyvenv.cfg", "../outside.py"):
+                     "tools/bin/ffmpeg.exe", ".env", ".env.production", ".venv/pyvenv.cfg", "../outside.py",
+                     "Original.M4V", "track.m4a", ".ENV.PRIVATE", "Output/settings.json"):
             with self.subTest(name=name):
                 self.assertFalse(safe_release_path(name))
         for name in ("fpvsesh/ui.py", "models/qwen3-vl-2b/manifest.json", "docs/user-guide.md"):

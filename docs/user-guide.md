@@ -87,7 +87,9 @@ F1 opens Help & setup with getting started, optional feature information, troubl
 
 ## Optional models
 
-Core editing works without model downloads. Install optional features only after an ordinary preview works. The optional stack uses a separate Python 3.12 environment; core Python 3.13 support does not imply optional-stack compatibility.
+Core editing works without model downloads. Install optional features only after an ordinary preview works. The optional stack uses a separate local environment and supports 64-bit Python 3.12 or 3.13; Python 3.13.15 is recommended for a new installation.
+
+Double-click **install-models.cmd**. Choose **AI detail**, **Flight understanding**, or **All**; **Q** exits. Downloads begin only after a selection. Initial packages and model checkpoints take several gigabytes. Scene context can use CPU. AI detail and Qwen video interpretation need a compatible NVIDIA GPU; Qwen currently needs 8 GB-class memory and does not run on CPU. The scripts below remain available for advanced setup.
 
 | Script | Adds |
 | --- | --- |
@@ -96,6 +98,8 @@ Core editing works without model downloads. Install optional features only after
 | `setup-video.ps1` after AI setup | Qwen3-VL general video interpretation; checkpoint about 4.3 GB plus packages. |
 
 Read each setup message for current compatibility requirements. Initial Torch packages are several gigabytes. Scripts support `-CheckOnly`; individual checks may hash model files and perform a bounded inference. Video interpretation requires a compatible NVIDIA GPU and can run longer than the recording itself on an 8 GB GPU. That tested configuration is not a performance guarantee or a claimed minimum.
+
+This release pins Torch 2.14.0/CUDA 12.6, torchvision 0.29.0 and Transformers 5.10.2. Optional setup uses the core interpreter by default; `setup-ai.ps1 -PythonPath 'C:\Python\python.exe'` selects another supported executable when creating a new environment. For an existing optional stack, close running jobs and use **install-models.cmd** again or `setup-ai.ps1 -Upgrade`; pinned packages are reinstalled and an already-installed video extension is updated coherently. Models and jobs are retained. Changing the Python interpreter itself requires a fresh application folder. Revalidate AI enhancement after any runtime change.
 
 Real-ESRGAN uses native 2× restoration with a fixed 40% restored / 60% conventional blend. Validate and inspect a short sample before a long AI render: successful inference does not establish better texture or temporal quality. Auto remains conventional.
 

@@ -4,6 +4,8 @@ $ErrorActionPreference = 'Stop'
 $appRoot = [IO.Path]::GetFullPath($PSScriptRoot)
 $rootPrefix = $appRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+. (Join-Path $PSScriptRoot 'setup-common.ps1')
+$setupGuard = $null
 
 function Get-AppPath([string]$relativePath) {
     if ([IO.Path]::IsPathRooted($relativePath)) { throw 'Expected an application-relative path.' }
@@ -12,8 +14,11 @@ function Get-AppPath([string]$relativePath) {
     return $absolutePath
 }
 function Test-Hash([string]$path, [string]$expected) {
-    return ($expected -match '^[0-9a-fA-F]{64}$' -and (Test-Path -LiteralPath $path -PathType Leaf) -and
-        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -eq $expected)
+    if ($expected -notmatch '^[0-9a-fA-F]{64}$' -or -not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($path)
+    try { return [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '') -eq $expected }
+    finally { $stream.Dispose(); $hasher.Dispose() }
 }
 function Test-Python([string]$path) {
     if (-not $path -or -not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
@@ -48,6 +53,7 @@ function Install-Lock([string]$name) {
 
 Push-Location -LiteralPath $appRoot
 try {
+    if (-not $CheckOnly) { $setupGuard = Enter-FpvSetupLock -AppRoot $appRoot }
     Write-Host 'FPV Sesh setup - editing and exports stay on this computer.'
     Write-Host 'Setup downloads verified Python packages and video tools. Optional models are installed separately.'
     $venvPython = Get-AppPath '.venv/Scripts/python.exe'
@@ -97,4 +103,7 @@ try {
     & $venvPython -m fpvsesh.installation
     if ($LASTEXITCODE -ne 0) { throw 'The installation check failed. Run doctor.cmd for guidance.' }
     Write-Host 'Setup complete. Double-click launch.cmd to start editing.'
-} finally { Pop-Location }
+} finally {
+    if ($setupGuard) { $setupGuard.Dispose() }
+    Pop-Location
+}

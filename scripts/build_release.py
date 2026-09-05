@@ -11,15 +11,18 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE_DIRS = {"input", "music", "output", "cache", "logs", ".git", "sources", "dist"}
-MEDIA_SUFFIXES = {".mp4", ".mov", ".mkv", ".avi", ".wav", ".mp3", ".flac", ".safetensors", ".pth", ".pt", ".exe", ".dll", ".zip", ".7z"}
+MEDIA_SUFFIXES = {".mp4", ".mov", ".mkv", ".avi", ".m4v", ".mts", ".m2ts", ".webm", ".wmv", ".3gp",
+                  ".wav", ".mp3", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".srt",
+                  ".safetensors", ".pth", ".pt", ".onnx", ".gguf", ".bin", ".exe", ".dll",
+                  ".zip", ".7z", ".whl", ".nupkg", ".msi", ".msix", ".gz"}
 
 
 def safe_release_path(name):
     path = PurePosixPath(name)
     return (not path.is_absolute() and ".." not in path.parts and
-            not any(part in PRIVATE_DIRS or part.startswith(".venv") for part in path.parts) and
+            not any(part.lower() in PRIVATE_DIRS or part.lower().startswith(".venv") for part in path.parts) and
             path.suffix.lower() not in MEDIA_SUFFIXES and
-            path.name not in {"STATUS.md", ".env"} and not path.name.startswith(".env.") and
+            path.name.lower() not in {"status.md", ".env"} and not path.name.lower().startswith(".env.") and
             path.suffix.lower() not in {".pem", ".key"})
 
 
@@ -55,10 +58,10 @@ def main():
             info.external_attr = 0o100644 << 16
             output.writestr(info, content)
     manifest_path = args.output / f"{prefix}-source-manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
     files = (archive, manifest_path)
     checksums = "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n" for path in files)
-    (args.output / "SHA256SUMS.txt").write_text(checksums, encoding="ascii")
+    (args.output / "SHA256SUMS.txt").write_text(checksums, encoding="ascii", newline="\n")
     print(f"Built {archive.name}: {len(names)} source files at {commit}")
     print(checksums, end="")
 

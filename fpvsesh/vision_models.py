@@ -9,6 +9,9 @@ import json
 from pathlib import Path
 import numpy as np
 from PIL import Image
+from .runtime_dlls import prepare_torch_dlls
+
+prepare_torch_dlls()
 import torch
 from torch import nn
 

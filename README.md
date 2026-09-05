@@ -21,7 +21,7 @@ A local Windows FPV editing studio. Import a flying session, review complete mom
 ## Install and open
 
 1. Download the source ZIP from [Releases](https://github.com/kaiuribess/fpv-sesh/releases) and **extract the entire ZIP** to a writable local folder, such as `C:\FPV-Sesh`. Keep its files together.
-2. Install **64-bit Python 3.13.15 with Tkinter** from [python.org](https://www.python.org/downloads/release/python-31315/), then double-click **install.cmd**. Core setup supports Python 3.12 and 3.13; 3.13.15 is the current recommended Windows installer. Optional models have a separate Python 3.12 environment.
+2. Install **64-bit Python 3.13.15 with Tkinter** from [python.org](https://www.python.org/downloads/release/python-31315/), then double-click **install.cmd**. Core and optional setup support Python 3.12 and 3.13; 3.13.15 is the recommended Windows installer. Optional models use a separate local environment.
 3. Double-click **launch.cmd**, then use **+ Add clips** or **Folder**. Press **F1** for Help & setup.
 
 The first setup needs internet access to download dependencies and FFmpeg. Ordinary editing runs locally afterward. Windows 11 x64 is the tested desktop target. GPU encoding, scaling and optional inference depend on separate hardware/driver capabilities; CPU fallbacks can be much slower. Setup changes no GPU drivers or system security settings.
@@ -48,13 +48,15 @@ Flight sound uses a lossless intermediate before music mixing. The final soundtr
 
 Optional **Places365 ResNet18** uses weights pretrained on approximately 1.8 million internet scene images. It runs locally on proxy frames and supplies broad surroundings such as park/open grass, forest, sky, water, or built areas. Ambiguous scenes remain uncertain.
 
-Run **setup-ai.ps1** for the shared optional Torch runtime, then **setup-vision.ps1** for the approximately 46 MB scene model. **setup-vision.ps1 -CheckOnly** verifies an existing installation and performs a small inference check. The initial Torch download is approximately 2.9 GB. Without these optional files, motion-based flight maps still work.
+Double-click **install-models.cmd** and choose **Flight understanding** or **All** to install optional scene/video features. Downloads start only after your selection. The shared Torch download is approximately 2.6 GB; Places365 adds approximately 46 MB. Scene context can use CPU. Without these optional files, motion-based flight maps still work. Advanced setup uses **setup-ai.ps1**, then **setup-vision.ps1**; **setup-vision.ps1 -CheckOnly** verifies assets and performs a small inference check.
 
 **Scene recognition is not a trained freestyle-trick detector.** It cannot prove a powerloop, double flip, crash, or geographic 3D route. Temporal motion adds evidence; user-confirmed labels remain distinct. Local matching needs multiple confirmed examples from different source identities and reports an independent-flight check. Replaced source files cannot inherit old confirmations. The app does not scrape or retrain on every online FPV video. See [online-model research](docs/online-training.md) for the actual evaluation, provenance, and attribution.
 
 ## Video understanding from internet training
 
-Run **setup-video.ps1** after **setup-ai.ps1** to install the official Qwen3-VL-2B-Instruct checkpoint (about 4.3 GB) and pinned supporting packages. The existing AI packages retain their versions. Inference runs locally; no account, API key, footage upload, or personal training examples are required.
+The **Flight understanding** or **All** choice in **install-models.cmd** also installs the official Qwen3-VL-2B-Instruct checkpoint (about 4.3 GB) and pinned supporting packages. Advanced setup uses **setup-video.ps1** after **setup-ai.ps1**. The release uses Torch 2.14.0/CUDA 12.6 and Transformers 5.10.2 in a separate Python 3.12 or 3.13 environment. Qwen video inference requires a compatible NVIDIA GPU with 8 GB-class memory; it does not currently run on CPU. Inference runs locally; no account, API key, footage upload, or personal training examples are required.
+
+To update or repair an existing declared optional stack, use **install-models.cmd** again or run **setup-ai.ps1 -Upgrade**. It reinstalls pinned packages and updates an already-installed video extension to matching release pins too; use **setup-video.ps1** afterward to add video for the first time. Close running jobs first. Model assets and saved jobs are retained, but AI enhancement needs a new validation after runtime changes. `-CheckOnly` verifies without upgrading.
 
 Choose **Automatic**, **Off**, or **Thorough** under Session. Automatic reviews overlapping eight-second video windows with up to eight sampled frames per second. Thorough uses overlapping six-second windows with up to sixteen sampled frames per second and a larger image budget. Both preserve the original aspect ratio. Recognition can take longer than the recording itself on an 8 GB GPU; completed observations are cached and pause/cancel remain available.
 

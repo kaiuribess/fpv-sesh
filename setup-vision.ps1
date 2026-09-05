@@ -3,6 +3,8 @@ param([switch]$CheckOnly)
 
 $ErrorActionPreference = 'Stop'
 $appRoot = [IO.Path]::GetFullPath($PSScriptRoot)
+. (Join-Path $PSScriptRoot 'setup-common.ps1')
+$setupGuard = $null
 $modelFolder = Join-Path $appRoot 'models/places365'
 $pythonPath = Join-Path $appRoot '.venv-ai/Scripts/python.exe'
 if (-not (Test-Path -LiteralPath $pythonPath -PathType Leaf)) {
@@ -15,9 +17,16 @@ function Confirm-SceneFile([string]$path, $entry) {
     if ($entry.sha256 -notmatch '^[0-9a-f]{64}$') { throw 'Missing expected model checksum.' }
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing scene asset: $($entry.file)" }
     if ((Get-Item -LiteralPath $path).Length -ne $entry.size_bytes) { throw "Scene asset size mismatch: $($entry.file)" }
-    if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.sha256) { throw "Scene asset SHA256 mismatch: $($entry.file)" }
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($path)
+    try { $actualHash = [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hasher.Dispose() }
+    if ($actualHash -ne $entry.sha256) { throw "Scene asset SHA256 mismatch: $($entry.file)" }
 }
 
+Push-Location -LiteralPath $appRoot
+try {
+if (-not $CheckOnly) { $setupGuard = Enter-FpvSetupLock -AppRoot $appRoot }
 Write-Host 'Optional Places365 scene context: approximately 46 MB. No source footage is uploaded.'
 Write-Host 'Pretrained weights: CC BY attribution (upstream does not specify version). See models/places365/MODEL-LICENSE.md.'
 foreach ($entry in $manifest.assets) {
@@ -34,19 +43,31 @@ foreach ($entry in $manifest.assets) {
         $uri.AbsolutePath.StartsWith('/CSAILVision/places365/') -or $uri.AbsolutePath.StartsWith('/pytorch/vision/'))
     if (-not ($officialModel -or $officialText)) { throw "Unexpected scene asset origin: $($entry.url)" }
     $partialPath = $destination + '.' + [guid]::NewGuid().ToString('N') + '.download'
+    Add-Type -AssemblyName System.Net.Http
+    $client = [System.Net.Http.HttpClient]::new()
+    $client.Timeout = [TimeSpan]::FromMinutes(10)
+    $sourceStream = $null
+    $targetStream = $null
     try {
         Write-Host "Downloading $($entry.file)..."
-        Invoke-WebRequest -Uri $uri.AbsoluteUri -OutFile $partialPath -UseBasicParsing
+        # FileStream treats the complete destination as a literal path.
+        $sourceStream = $client.GetStreamAsync($uri.AbsoluteUri).GetAwaiter().GetResult()
+        $targetStream = [IO.File]::Open($partialPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write)
+        $sourceStream.CopyTo($targetStream)
+        $targetStream.Dispose()
+        $targetStream = $null
         Confirm-SceneFile $partialPath $entry
         Move-Item -LiteralPath $partialPath -Destination $destination
     } finally {
+        if ($targetStream) { $targetStream.Dispose() }
+        if ($sourceStream) { $sourceStream.Dispose() }
+        $client.Dispose()
         if (Test-Path -LiteralPath $partialPath -PathType Leaf) { Remove-Item -LiteralPath $partialPath }
     }
 }
-Push-Location -LiteralPath $appRoot
-try {
     & $pythonPath -B -c "from fpvsesh.vision_models import SceneModel; import numpy as np; m=SceneModel(); r=m.predict([np.zeros((224,224,3),dtype=np.uint8)]); assert len(r)==1; print('Scene inference ready on '+str(m.device)+'. Scene estimates do not identify named FPV tricks.')"
     if ($LASTEXITCODE -ne 0) { throw 'Scene model safe-load or inference check failed.' }
 } finally {
+    if ($setupGuard) { $setupGuard.Dispose() }
     Pop-Location
 }

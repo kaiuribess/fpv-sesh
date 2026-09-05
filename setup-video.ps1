@@ -1,9 +1,11 @@
 [CmdletBinding()]
-param([switch]$CheckOnly)
+param([switch]$CheckOnly, [switch]$Upgrade, [object]$ParentSetupGuard = $null)
 
 $ErrorActionPreference = 'Stop'
 $appRoot = [IO.Path]::GetFullPath($PSScriptRoot)
 $rootPrefix = $appRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+. (Join-Path $PSScriptRoot 'setup-common.ps1')
+$setupGuard = $null
 $pythonPath = Join-Path $appRoot '.venv-ai/Scripts/python.exe'
 if (-not (Test-Path -LiteralPath $pythonPath -PathType Leaf)) {
     throw 'Run setup-ai.ps1 first to install the separate CUDA runtime, then run setup-video.ps1.'
@@ -20,14 +22,18 @@ function Confirm-VideoFile([string]$path, [string]$sha256, [long]$size = -1) {
     if ($sha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'Video asset checksum is missing.' }
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing video asset: $path" }
     if ($size -ge 0 -and (Get-Item -LiteralPath $path).Length -ne $size) { throw "Video asset size mismatch: $path" }
-    if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $sha256) { throw "Video asset checksum mismatch: $path" }
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($path)
+    try { $actualHash = [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hasher.Dispose() }
+    if ($actualHash -ne $sha256) { throw "Video asset checksum mismatch: $path" }
 }
 
 $checkVersions = @'
 from importlib.metadata import PackageNotFoundError, distributions, version
 from pathlib import Path
 import re, struct, sys
-assert sys.platform == 'win32' and sys.version_info[:2] == (3,12) and struct.calcsize('P') == 8
+assert sys.platform == 'win32' and sys.version_info[:2] in ((3,12),(3,13)) and struct.calcsize('P') == 8
 assert Path(sys.prefix).resolve() == Path('.venv-ai').resolve() and sys.prefix != sys.base_prefix
 normalize = lambda name: re.sub(r'[-_.]+', '-', name.lower())
 expected = {}
@@ -35,7 +41,7 @@ for filename in ('requirements-ai-lock.txt', 'requirements-video-lock.txt'):
     for line in Path(filename).read_text().splitlines():
         if not line.strip() or line.startswith('#'):
             continue
-        if not re.fullmatch(r'[A-Za-z0-9_.-]+==[A-Za-z0-9.+_-]+ --hash=sha256:[0-9a-f]{64}', line):
+        if not re.fullmatch(r'[A-Za-z0-9_.-]+==[A-Za-z0-9.+_-]+(?: --hash=sha256:[0-9a-f]{64})+', line):
             raise SystemExit('Unexpected dependency lock syntax')
         name, wanted = line.split()[0].split('==')
         name = normalize(name)
@@ -45,10 +51,10 @@ for filename in ('requirements-ai-lock.txt', 'requirements-video-lock.txt'):
         try:
             actual = version(name)
         except PackageNotFoundError:
-            if filename == 'requirements-video-lock.txt' and sys.argv[1] == 'allow-missing':
+            if filename == 'requirements-video-lock.txt' and sys.argv[1] in ('allow-missing','allow-upgrade'):
                 continue
             raise SystemExit('Missing package: '+name)
-        if actual != wanted:
+        if actual != wanted and not (filename == 'requirements-video-lock.txt' and sys.argv[1] == 'allow-upgrade'):
             raise SystemExit(f'{name}: expected {wanted}, found {actual}; existing packages are not replaced')
 extra = sorted(normalize(d.metadata['Name']) for d in distributions() if normalize(d.metadata['Name']) not in expected)
 if extra:
@@ -83,9 +89,11 @@ finally:
 
 Push-Location -LiteralPath $appRoot
 try {
+    if (-not $CheckOnly) { $setupGuard = Enter-FpvSetupLock -AppRoot $appRoot -ParentGuard $ParentSetupGuard }
+    if ($Upgrade -and $CheckOnly) { throw 'Use -Upgrade to install updates or -CheckOnly to inspect, not both.' }
     Write-Host 'FPV Sesh optional internet-pretrained video understanding'
     Write-Host 'Official Qwen3-VL-2B: approximately 4.27 GB once. Inference stays on this computer.'
-    & $pythonPath -B -c $checkVersions $(if ($CheckOnly) { 'complete' } else { 'allow-missing' })
+    & $pythonPath -B -c $checkVersions $(if ($CheckOnly) { 'complete' } elseif ($Upgrade) { 'allow-upgrade' } else { 'allow-missing' })
     if ($LASTEXITCODE -ne 0) { throw 'Existing runtime differs from the recorded base/video pins.' }
     $dependencyManifest = Get-Content -LiteralPath (Get-VideoPath 'tools/video-python-dependencies.json') -Raw | ConvertFrom-Json
     foreach ($package in $dependencyManifest.packages) {
@@ -98,14 +106,16 @@ try {
         if (-not (Test-Path -LiteralPath $cacheFolder)) { New-Item -ItemType Directory -Path $cacheFolder | Out-Null }
         $pins = @(Get-Content -LiteralPath (Get-VideoPath 'requirements-video-lock.txt') | Where-Object { $_.Trim() -and -not $_.StartsWith('#') })
         $visionPins = @($pins | Where-Object { $_ -match '^torchvision==' })
-        if ($visionPins.Count -ne 1 -or $visionPins[0] -notmatch '^torchvision==0\.24\.1\+cu128 ') { throw 'Expected the CUDA torchvision package matching PyTorch 2.9.1.' }
+        if ($visionPins.Count -ne 1 -or $visionPins[0] -notmatch '^torchvision==0\.29\.0\+cu126 ') { throw 'Expected the CUDA torchvision package matching PyTorch 2.14.0.' }
         $pypiLock = Join-Path $cacheFolder 'pypi-lock.txt'
         $visionLock = Join-Path $cacheFolder 'torchvision-lock.txt'
         $pins | Where-Object { $_ -notmatch '^torchvision==' } | Set-Content -LiteralPath $pypiLock -Encoding ascii
         $visionPins | Set-Content -LiteralPath $visionLock -Encoding ascii
-        & $pythonPath -m pip --isolated install --disable-pip-version-check --cache-dir $cacheFolder --index-url 'https://pypi.org/simple' --only-binary=:all: --no-deps --require-hashes -r $pypiLock
+        $repairArgs = @()
+        if ($Upgrade) { $repairArgs = @('--force-reinstall') }
+        & $pythonPath -m pip --isolated install --disable-pip-version-check --cache-dir $cacheFolder --index-url 'https://pypi.org/simple' --only-binary=:all: --no-deps --require-hashes @repairArgs -r $pypiLock
         if ($LASTEXITCODE -ne 0) { throw 'Video supporting package installation failed.' }
-        & $pythonPath -m pip --isolated install --disable-pip-version-check --cache-dir $cacheFolder --index-url 'https://download.pytorch.org/whl/cu128' --only-binary=:all: --no-deps --require-hashes -r $visionLock
+        & $pythonPath -m pip --isolated install --disable-pip-version-check --cache-dir $cacheFolder --index-url 'https://download.pytorch.org/whl/cu126' --only-binary=:all: --no-deps --require-hashes @repairArgs -r $visionLock
         if ($LASTEXITCODE -ne 0) { throw 'CUDA torchvision installation failed.' }
     }
     & $pythonPath -B -c $checkVersions 'complete'
@@ -133,18 +143,22 @@ try {
         Confirm-VideoFile $destination $entry.sha256 $entry.size_bytes
     }
     $checkImports = @'
+from fpvsesh.runtime_dlls import prepare_torch_dlls
+prepare_torch_dlls()
 import torch, torchvision, transformers
 from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
-assert torch.__version__ == '2.9.1+cu128'
-assert torchvision.__version__ == '0.24.1+cu128'
-assert transformers.__version__ == '4.57.6'
-assert torch.cuda.is_available(), 'An available CUDA GPU is required for this optional video model'
+assert torch.__version__ == '2.14.0+cu126'
+assert torchvision.__version__ == '0.29.0+cu126'
+assert transformers.__version__ == '5.10.2'
 processor = AutoProcessor.from_pretrained('models/qwen3-vl-2b', local_files_only=True, trust_remote_code=False)
 assert processor.__class__.__name__ == 'Qwen3VLProcessor'
 print('Video model assets, local processor, and CUDA imports verified. No video inference or footage upload was performed.')
+if not torch.cuda.is_available():
+    print('Qwen video inference is unavailable until a compatible NVIDIA GPU is present. Scene context can use CPU.')
 '@
     & $pythonPath -B -c $checkImports
     if ($LASTEXITCODE -ne 0) { throw 'Video processor or CUDA import verification failed.' }
 } finally {
+    if ($setupGuard) { $setupGuard.Dispose() }
     Pop-Location
 }

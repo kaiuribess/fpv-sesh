@@ -103,7 +103,8 @@ def _scene_samples(analyses, cache, event, checkpoint):
     scene_cache = Path(cache) / "learning/scenes"
     scene_cache.mkdir(parents=True, exist_ok=True)
     pending, records = [], []
-    code_hash = hashlib.sha256((_hash(ROOT / "fpvsesh/vision_models.py") + _hash(ROOT / "fpvsesh/vision_worker.py")).encode()).hexdigest()
+    code_hash = hashlib.sha256("".join(_hash(ROOT / "fpvsesh" / name) for name in
+                                     ("vision_models.py", "vision_worker.py", "runtime_dlls.py")).encode()).hexdigest()
     for analysis in analyses:
         checkpoint()
         proxy = Path(analysis.get("proxy", ""))

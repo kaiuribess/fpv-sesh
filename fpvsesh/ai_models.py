@@ -18,6 +18,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from .runtime_dlls import prepare_torch_dlls
+
+prepare_torch_dlls()
 import torch
 from torch import nn
 from torch.nn import functional as F

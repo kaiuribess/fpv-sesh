@@ -6,7 +6,7 @@ Press **F1 → Help & setup** in the app. Activity contains progress, warnings a
 
 | Symptom | Next step |
 | --- | --- |
-| Python missing or wrong version | Install supported 64-bit Python with Tkinter. Core supports 3.12 and 3.13; the recommended current Windows installer is [3.13.15](https://www.python.org/downloads/release/python-31315/). Run install.cmd again. |
+| Python missing or wrong version | Install supported 64-bit Python with Tkinter. Core and optional models support 3.12 and 3.13; the recommended Windows installer is [3.13.15](https://www.python.org/downloads/release/python-31315/). Run install.cmd again. |
 | Several Python installations | Run `setup.ps1 -PythonPath 'C:\Python\python.exe'`, substituting the supported executable's actual path. |
 | Tkinter missing | Use the full Windows installer with Tcl/Tk enabled; the embeddable ZIP is not the desktop runtime. |
 | Folder is not writable | Extract a fresh copy to a folder you own outside Program Files. |
@@ -27,6 +27,8 @@ Try Auto or Clean upscale and a short preview. Optional AI detail costs substant
 ## Recognition unavailable, partial or uncertain
 
 Core editing and motion estimates work without optional models. Choose Flight recognition → Off to skip video interpretation. Help's file-presence hint is not an integrity or inference test; the backend explains missing files, incompatible runtimes and checksum failures.
+
+Use **install-models.cmd** to install or repair the optional packages after closing active jobs. Existing model files are verified and retained. A mismatched checkpoint is rejected; reinstalling Python packages does not bypass its checksum. Places365 scene context can run on CPU. Qwen video and AI detail currently require a compatible NVIDIA GPU, and Qwen needs 8 GB-class memory. Successful setup imports do not establish that a long inference job will fit.
 
 A partial scan keeps completed observations. Restore missing originals, resolve the reported cause, and choose Flight map → Refresh understanding. This updates observations without changing your finished edit. If GPU memory is exhausted, close other heavy GPU applications and try Automatic before Thorough.
 

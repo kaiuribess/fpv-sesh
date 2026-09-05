@@ -969,7 +969,7 @@ class SeshApp(tk.Tk):
                 "Ordinary editing works without either optional feature. Auto/Clean upscale are available. "
                 "Automatic video recognition falls back to motion estimates when its optional model is unavailable; Off skips video recognition. "
                 "Thorough takes longer. User examples are optional.\n\n"
-                "The setup guide explains setup-ai.ps1, setup-video.ps1 and the optional setup-vision.ps1 scene model. "
+                "Double-click install-models.cmd to choose optional downloads. The setup guide also explains the individual setup scripts. "
                 "Downloads can be several GB. The current optional AI packages require a separately supported runtime; check the setup guide before installing. "
                 "AI detail also requires the validate-ai sample check; installation alone does not enable it.\n\n"
                 "Recognition uses internet-trained weights locally. It does not upload your recordings or require an account/API key. "

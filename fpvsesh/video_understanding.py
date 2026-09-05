@@ -188,7 +188,7 @@ def recognize(analyses, cache, event=lambda *args: None, checkpoint=lambda: None
     ffmpeg, _ = locate_tools()
     folder = Path(cache) / "learning/video"
     folder.mkdir(parents=True, exist_ok=True)
-    code = {name: _hash(ROOT / "fpvsesh" / name) for name in ("video_worker.py", "video_understanding.py", "maneuvers.py", "rotation_witness.py")}
+    code = {name: _hash(ROOT / "fpvsesh" / name) for name in ("video_worker.py", "video_understanding.py", "maneuvers.py", "rotation_witness.py", "runtime_dlls.py")}
     runtime = ROOT / "requirements-video-lock.txt"
     shared = {"version": VERSION, "model": status["weights_sha256"], "model_manifest": status["manifest_sha256"],
               "code": code, "profile": PROFILES[mode],

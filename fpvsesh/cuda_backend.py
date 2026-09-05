@@ -1,10 +1,12 @@
 """Main-app adapter for the isolated and locally validated CUDA worker."""
 from __future__ import annotations
 import hashlib
+from importlib import metadata
 import json
 import os
 from pathlib import Path
 import queue
+import re
 import subprocess
 import threading
 import time
@@ -20,9 +22,60 @@ PROFILE = {"ai_model": "RealESRGAN_x2plus", "ai_blend": .4, "ai_denoise": .2,
            "ai_tile": 768, "cq": 16, "encoder_preset": "p7"}
 
 
+def runtime_signature():
+    """Check isolated installed metadata without importing any optional model.
+
+    Metadata hashes retire a receipt after a same-version wheel or installation
+    record changes. They are not a full verification of every package file.
+    """
+    try:
+        lock = (ROOT / "requirements-ai-lock.txt").read_bytes()
+        requirements = {}
+        for line in lock.decode("utf-8-sig").replace("\\\r\n", " ").replace("\\\n", " ").splitlines():
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
+            match = re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9._-]*)==([^\s;]+)(?:\s+--hash=sha256:[0-9a-f]{64})+", line)
+            if not match:
+                raise ValueError("The AI dependency lock needs exact versions and SHA256 pins")
+            name = re.sub(r"[-_.]+", "-", match[1]).lower()
+            if name in requirements:
+                raise ValueError("The AI dependency lock contains a duplicate package")
+            requirements[name] = match[2]
+        if not requirements:
+            raise ValueError("The AI dependency lock is empty")
+        site = (ROOT / ".venv-ai/Lib/site-packages").resolve(strict=True)
+        if not site.is_dir() or not site.is_relative_to(ROOT.resolve()):
+            raise ValueError("The optional environment must be inside this application")
+        installed = {}
+        for distribution in metadata.distributions(path=[str(site)]):
+            name = distribution.metadata.get("Name")
+            if name:
+                normalized = re.sub(r"[-_.]+", "-", name).lower()
+                if normalized in requirements:
+                    installed.setdefault(normalized, []).append(distribution)
+        packages = {}
+        for name, version in sorted(requirements.items()):
+            matches = installed.get(name, [])
+            if len(matches) != 1 or matches[0].version != version:
+                raise ValueError(f"{name} must be installed exactly once at version {version}")
+            records = {}
+            for filename in ("METADATA", "WHEEL", "RECORD"):
+                content = matches[0].read_text(filename)
+                if not content:
+                    raise ValueError(f"{name} has incomplete installed package metadata")
+                records[filename] = hashlib.sha256(content.encode("utf-8")).hexdigest()
+            packages[name] = {"version": version, "installed_metadata_sha256": records}
+        return {"lock_sha256": hashlib.sha256(lock).hexdigest(), "packages": packages}
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        raise RuntimeError(f"The optional AI runtime does not match its pinned dependencies: {error}. Run setup-ai.ps1 -Upgrade, then validate a new local sample.") from error
+
+
 def signature(*, ffmpeg=None, ffprobe=None):
     """Fingerprint the binaries the caller will use, including explicit overrides."""
+    runtime = runtime_signature()
     paths = [ROOT / "fpvsesh/ai_models.py", ROOT / "fpvsesh/ai_worker.py",
+             ROOT / "fpvsesh/runtime_dlls.py",
              ROOT / "models/real-esrgan-cuda/RealESRGAN_x2plus.pth",
              ROOT / ".venv-ai/Lib/site-packages/torch/version.py"]
     hashes = {}
@@ -37,16 +90,18 @@ def signature(*, ffmpeg=None, ffprobe=None):
     for name, executable in (("ffmpeg", ffmpeg), ("ffprobe", ffprobe)):
         with Path(executable).open("rb") as stream:
             tools[name] = hashlib.file_digest(stream, "sha256").hexdigest()
-    return {"profile": PROFILE, "files": hashes, "tools": tools}
+    return {"profile": PROFILE, "files": hashes, "tools": tools, "runtime": runtime}
 
 
 def status(gpu, *, ffmpeg=None, ffprobe=None):
     try:
         record = json.loads(VALIDATION.read_text(encoding="utf-8"))
-        available = (PYTHON.is_file() and record.get("passed") is True and
+        available = (PYTHON.is_file() and isinstance(record, dict) and record.get("passed") is True and
                      record.get("gpu") == gpu and record.get("signature") == signature(ffmpeg=ffmpeg, ffprobe=ffprobe))
-    except (OSError, ValueError, RuntimeError):
+    except (OSError, ValueError, RuntimeError, TypeError):
         record, available = {}, False
+    if not isinstance(record, dict):
+        record = {}
     return {"available": available, "profile": PROFILE,
             "fps": record.get("fps") if available else None,
             "peak_total_gpu_memory_mib": record.get("peak_total_gpu_memory_mib") if available else None}
@@ -56,6 +111,7 @@ def render(source, destination, options, source_probe, fit_dimensions, log):
     """Stream progress from one child and propagate safe worker cancellation."""
     if not PYTHON.is_file():
         raise RuntimeError("The isolated CUDA enhancement environment is missing")
+    runtime_signature()
     source, destination = Path(source).resolve(), Path(destination).resolve()
     token = uuid.uuid4().hex[:12]
     config_path = ROOT / "cache" / f"cuda-{token}.json"
@@ -120,8 +176,11 @@ def render(source, destination, options, source_probe, fit_dimensions, log):
         result_path = destination.with_suffix(destination.suffix + ".ai.json")
         result = json.loads(result_path.read_text(encoding="utf-8"))
         result_path.unlink()
+        warnings = result.get("warnings", [])
+        if not isinstance(warnings, list) or any(not isinstance(item, str) for item in warnings):
+            raise RuntimeError("CUDA worker returned invalid encoder diagnostics")
         result.update({"source_path": str(source), "output_path": str(destination),
-                       "start": options["start"], "duration": options["duration"], "warnings": [],
+                       "start": options["start"], "duration": options["duration"], "warnings": warnings,
                        "elapsed_seconds": round(time.monotonic()-started, 3),
                        "scaling_note": "Native 2x realistic CUDA restoration, fixed 40% model / 60% source-scale blend; no invented motion.",
                        "frame_rate_conversion": options.get("rate_conversion", False),

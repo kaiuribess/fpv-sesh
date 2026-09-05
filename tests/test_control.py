@@ -184,6 +184,8 @@ class WorkerControlTests(unittest.TestCase):
         self.stack = contextlib.ExitStack()
         self.addCleanup(self.stack.close)
         self.stack.enter_context(patch.object(self.worker, "ROOT", self.root))
+        self.stack.enter_context(patch.object(self.worker, "_select_encoder",
+                                              return_value=self.worker._encoder_plan(self.config)))
         self.constructor = self.stack.enter_context(patch.object(self.worker, "Restorer", return_value=self.restorer))
         self.popen = self.stack.enter_context(patch.object(self.worker.subprocess, "Popen", side_effect=[self.decoder, self.encoder]))
         self.stack.enter_context(contextlib.redirect_stdout(io.StringIO()))

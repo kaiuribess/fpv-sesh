@@ -18,7 +18,7 @@ The Qwen3-VL publisher reports improved temporal modeling, but there is no verif
 
 ## Local input and runtime contract
 
-Use native `Qwen3VLForConditionalGeneration` and `AutoProcessor` from Transformers 4.57.6, BF16 weights, `attn_implementation="sdpa"`, `local_files_only=True` and `trust_remote_code=False`. The model uses 16-pixel patches, two-by-two spatial merging and two-frame temporal merging. Both dimensions should therefore be compatible with multiples of 32, and clips should use an even frame count. [Transformers Qwen3-VL documentation](https://huggingface.co/docs/transformers/v4.57.1/model_doc/qwen3_vl).
+Use native `Qwen3VLForConditionalGeneration` and `AutoProcessor`, BF16 weights, `attn_implementation="sdpa"`, `local_files_only=True` and `trust_remote_code=False`. The release runtime is Transformers 5.10.2 with Torch 2.14.0/CUDA12.6; the initial evaluation used Transformers 4.57.6. The model uses 16-pixel patches, two-by-two spatial merging and two-frame temporal merging. Both dimensions should therefore be compatible with multiples of 32, and clips should use an even frame count. [Transformers Qwen3-VL documentation](https://huggingface.co/docs/transformers/model_doc/qwen3_vl).
 
 Decode selected frames locally and pass an RGB array shaped `[frames, height, width, channels]`. Pre-sampled video must include `video_metadata` with `total_num_frames`, `fps` and `frames_indices`; otherwise the processor may silently invent 24 FPS timestamps. Disable further frame sampling. Frame indices and FPS must describe the actual sampling time base, including variable-rate footage handled through explicit timestamps or a known constant-rate proxy.
 
