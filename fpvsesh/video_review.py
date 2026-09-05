@@ -6,12 +6,11 @@ import copy
 from datetime import datetime
 import json
 import math
-import os
 from pathlib import Path
 import tempfile
 
 from .analysis import analyze, save_json
-from .control import Cancelled, check_control
+from .control import Cancelled, check_control, acquire_run_lock
 from .flightmap import annotate_candidates, build_flight_map
 from .media import probe
 
@@ -21,22 +20,8 @@ ANNOTATION_PREFIXES = ("flight_", "trick_", "scene_")
 
 @contextmanager
 def _run_lock(cache):
-    cache.mkdir(parents=True, exist_ok=True)
-    lock = (cache / "run.lock").open("a+b")
+    lock = acquire_run_lock(cache)
     try:
-        if lock.seek(0, os.SEEK_END) == 0:
-            lock.write(b"0")
-            lock.flush()
-        lock.seek(0)
-        try:
-            if os.name == "nt":
-                import msvcrt
-                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-            else:
-                import fcntl
-                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError as error:
-            raise RuntimeError("Another FPV Sesh job is running; finish or cancel it before rescanning") from error
         yield
     finally:
         lock.close()

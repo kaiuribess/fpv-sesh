@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from scenedetect import SceneManager, open_video
 from scenedetect.detectors import AdaptiveDetector
-from .media import locate_tools, run
+from .media import locate_tools, run, sha256_file
 
 ANALYSIS_VERSION = "5"
 PROXY_FPS = 12
@@ -87,7 +87,11 @@ def _enrich_flight_detail(result, event, checkpoint):
         previous = gray;count += 1
         if idx % 240 == 0:
             event("analysis",idx/12/max(result["duration"],1),f"Checking close passes and landing context: {Path(result['source']).name} {idx/12:.0f}s")
-            checkpoint()
+            try:
+                checkpoint()
+            except BaseException:
+                cap.release()
+                raise
         idx += 1
     cap.release()
     if count != len(result["rows"]): raise RuntimeError("Detailed proxy analysis did not cover the complete session")
@@ -105,25 +109,71 @@ def save_json(path, data):
 def identity(p):
     return p.get("sha256") or p.get("identity") or hashlib.sha256(p["source"].encode()).hexdigest()
 
+
+def _cached_analysis(path, p, proxy):
+    """Reuse only complete rows tied to this exact, intact generated proxy."""
+    try:
+        result = json.loads(path.read_text(encoding="utf-8"))
+        expected = math.ceil(float(p["duration"]) * PROXY_FPS - 1e-6)
+        if (not isinstance(result, dict) or result.get("version") != ANALYSIS_VERSION or
+                result.get("identity") != identity(p) or result.get("detail_version") != DETAIL_VERSION or
+                result.get("duration") != p["duration"] or result.get("sample_fps") != PROXY_FPS / 2 or
+                result.get("proxy_frames") != expected or result.get("coverage_seconds") != expected / PROXY_FPS or
+                not isinstance(result.get("proxy_sha256"), str) or not proxy.is_file() or
+                sha256_file(proxy) != result["proxy_sha256"]):
+            return None
+        rows = result.get("rows")
+        if not isinstance(rows, list) or len(rows) != math.ceil(expected / 2):
+            return None
+        fields = ("t", "motion", "rotation", "dx", "dy", "sharpness", "luma", "contrast", "black", "white",
+                  "residual_motion", "proximity", "parallax_confidence", "foreground_texture")
+        for index, row in enumerate(rows):
+            if (not isinstance(row, dict) or any(isinstance(row.get(key), bool) or
+                    not isinstance(row.get(key), (int, float)) or not math.isfinite(row[key]) for key in fields) or
+                    abs(row["t"] - index * 2 / PROXY_FPS) > 1e-6 or
+                    not isinstance(row.get("hist"), list) or len(row["hist"]) != 48 or
+                    any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) for x in row["hist"])):
+                return None
+            int(row["hash"], 16)
+        if (not isinstance(result.get("cuts_estimated"), list) or
+                any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) or
+                    not 0 < x < p["duration"] for x in result["cuts_estimated"])):
+            return None
+        result["source"] = p["source"]
+        result["proxy"] = str(proxy.resolve())
+        return result
+    except (OSError, ValueError, TypeError, KeyError, OverflowError):
+        return None
+
+
 def analyze(p, cache: Path, event, checkpoint=lambda: None):
+    duration = p.get("duration")
+    if isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0:
+        raise ValueError("Source duration must be a positive finite number before analysis")
+    expected_frames = math.ceil(duration * PROXY_FPS - 1e-6)
     key = hashlib.sha256((str(identity(p)) + ANALYSIS_VERSION).encode()).hexdigest()[:20]
     folder = cache / "analysis" / key
     folder.mkdir(parents=True, exist_ok=True)
     result_path = folder / "analysis.json"
-    if result_path.exists():
-        result = json.loads(result_path.read_text(encoding="utf-8"))
-        result["source"] = p["source"]
-        result = _enrich_flight_detail(result,event,checkpoint)
-        save_json(result_path,result)
-        event("analysis", 1, f"Reusing full-session analysis: {Path(p['source']).name}")
-        return result
     proxy = folder / "proxy.mp4"
+    if result_path.exists():
+        checkpoint()
+        result = _cached_analysis(result_path, p, proxy)
+        if result is not None:
+            event("analysis", 1, f"Reusing full-session analysis: {Path(p['source']).name}")
+            return result
+        event("analysis", 0, f"Rebuilding incomplete or outdated analysis: {Path(p['source']).name}")
+        result_path.unlink(missing_ok=True)
+        proxy.unlink(missing_ok=True)
     ffmpeg, _ = locate_tools()
-    if not proxy.exists():
+    # A proxy without its completed analysis record has no verified full-length
+    # identity. It may be a partial encode left by interruption; rebuild it.
+    if not result_path.exists():
         event("proxy", 0, f"Making full-length proxy: {Path(p['source']).name}")
         temp = folder / "proxy.partial.mp4"
         run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", p["source"], "-map", "0:v:0", "-an",
-             "-vf", "fps=12,scale=480:360:force_original_aspect_ratio=decrease,setsar=1", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "24", str(temp)], log_file=folder / "proxy.log")
+             "-vf", f"trim=duration={duration:.9f},fps=12:start_time=0:eof_action=pass,scale=480:360:force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1",
+             "-frames:v", str(expected_frames), "-c:v", "libx264", "-preset", "ultrafast", "-crf", "24", str(temp)], log_file=folder / "proxy.log")
         temp.replace(proxy)
     checkpoint()
     # Adaptive cuts are evidence only. Fast flight can also cause abrupt changes.
@@ -174,13 +224,20 @@ def analyze(p, cache: Path, event, checkpoint=lambda: None):
         previous = gray
         if idx % 240 == 0:
             event("analysis", idx / max(frames, 1), f"Analyzing {Path(p['source']).name}: {idx / 12:.0f}/{p['duration']:.0f} s")
-            checkpoint()
+            try:
+                checkpoint()
+            except BaseException:
+                cap.release()
+                raise
         idx += 1
     cap.release()
-    if len(rows) < 3 or idx < frames - 3:
-        raise RuntimeError(f"Proxy decode incomplete for {p['source']}")
+    if idx != expected_frames or frames != expected_frames:
+        raise RuntimeError(f"Proxy decode incomplete for {p['source']}: decoded {idx} frames; expected {expected_frames} for the full source duration")
+    if len(rows) < 3:
+        raise ValueError(f"{Path(p['source']).name}: recording is too short for flight analysis (at least 0.5 seconds required)")
     result = {"version": ANALYSIS_VERSION, "source": p["source"], "identity": identity(p), "proxy": str(proxy.resolve()),
               "duration": p["duration"], "sample_fps": 6, "coverage_seconds": idx / 12,
+              "proxy_frames": idx, "proxy_sha256": sha256_file(proxy),
               "cuts_estimated": cuts, "rows": rows, "semantic_confidence": "heuristic estimates; no trained trick classifier"}
     result = _enrich_flight_detail(result,event,checkpoint)
     save_json(result_path, result)

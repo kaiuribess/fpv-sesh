@@ -1,26 +1,32 @@
 {
   "schema_version": 1,
-  "verified_on_local_date": "2026-09-04",
+  "verified_on_local_date": "2026-09-05",
   "paths_relative_to": "fpv-sesh project root",
   "tools": [
     {
       "name": "FFmpeg",
-      "version": "7.1.1-full_build-www.gyan.dev",
-      "url": "https://github.com/GyanD/codexffmpeg/releases/download/7.1.1/ffmpeg-7.1.1-full_build.7z",
-      "source_url": "https://github.com/FFmpeg/FFmpeg/commit/db69d06eeeab4f46da15030a80d539efb4503ca8",
+      "version": "9.0.1-full_build-www.gyan.dev",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.1/ffmpeg-9.0.1-full_build.zip",
+      "source_url": "https://github.com/FFmpeg/FFmpeg/tree/n9.0.1",
       "upstream_builder_reference": "https://ffmpeg.org/download.html",
-      "archive": "tools/downloads/ffmpeg-7.1.1-full_build.7z",
-      "format": "7z",
-      "extract_to": "tools/ffmpeg-7.1.1",
-      "executable": "tools/ffmpeg-7.1.1/ffmpeg-7.1.1-full_build/bin/ffmpeg.exe",
-      "probe_executable": "tools/ffmpeg-7.1.1/ffmpeg-7.1.1-full_build/bin/ffprobe.exe",
-      "sha256": "e5bbf665b9a43219d97a15c2dd2cdeb9b11bcb689d88a2177c4f754b4e20f793",
-      "published_sha256": null,
-      "checksum_note": "Local archive hash recorded. Historical GitHub asset has no published digest; archived gyan.dev .sha256 URL returned 404. Download came from the exact FFmpeg-listed builder's official GitHub release.",
+      "archive": "tools/downloads/ffmpeg-9.0.1-full_build.zip",
+      "format": "zip",
+      "extract_to": "tools/ffmpeg-9.0.1",
+      "executable": "tools/ffmpeg-9.0.1/ffmpeg-9.0.1-full_build/bin/ffmpeg.exe",
+      "probe_executable": "tools/ffmpeg-9.0.1/ffmpeg-9.0.1-full_build/bin/ffprobe.exe",
+      "sha256": "2e8e28af97c2ae338ccef92e36da9b2a4cd21d0cad9dde093545606cb07f5b00",
+      "published_sha256": "2e8e28af97c2ae338ccef92e36da9b2a4cd21d0cad9dde093545606cb07f5b00",
+      "checksum_note": "ZIP SHA256 matches the publisher GitHub release asset digest. Installed executable hashes verified independently.",
       "license": "GPL-3.0-or-later (this full build)",
       "license_reference": "https://www.gyan.dev/ffmpeg/builds/#about-these-builds",
       "required": true,
-      "status": "tested: libplacebo Vulkan and HEVC Main10 NVENC both work on installed NVIDIA driver 581.42"
+      "status": "Maintained release. NVENC requires a compatible NVIDIA driver; automatic CPU encoding fallback is supported.",
+      "player_executable": "tools/ffmpeg-9.0.1/ffmpeg-9.0.1-full_build/bin/ffplay.exe",
+      "executable_sha256": {
+        "ffmpeg": "57c56e369d5b4873b4d93fc1a1d833cb7cd8bc9325c14b05c34ce60b22842d8a",
+        "ffprobe": "afe05347caaabe479b3c4eae71992b6ec1e11c57266a1d665deb0f9fe9847208",
+        "ffplay": "caf78df19f40fc8002d455d0b33006b8bab11f04470dda7e34b36b9ee64531c2"
+      }
     },
     {
       "name": "Video2X",

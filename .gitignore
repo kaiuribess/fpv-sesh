@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+/dist/
 
 # Recordings, generated jobs, device diagnostics and local delivery notes.
 /input/

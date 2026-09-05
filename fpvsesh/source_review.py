@@ -1,20 +1,15 @@
 """Interactive source-section playback; no rendering, media writes, or GPU jobs."""
 from __future__ import annotations
 
-import hashlib
-import json
 import math
 import os
 from pathlib import Path
 import subprocess
 
 from .media import probe
+from .toolchain import bundled_tool
 
 ROOT = Path(__file__).resolve().parents[1]
-# This executable was independently hashed both in the installed directory and
-# directly from the archive pinned in tools/dependencies.json. No new download.
-FFMPEG_ARCHIVE_SHA256 = "e5bbf665b9a43219d97a15c2dd2cdeb9b11bcb689d88a2177c4f754b4e20f793"
-FFPLAY_SHA256 = "ebc3c2e4543961f7701d2c9383aef9cebf0357db5fecd9aaec9479ed1a4ce5dc"
 
 
 def _finite(value):
@@ -23,25 +18,10 @@ def _finite(value):
 
 def find_player(app_dir=None):
     """Use only the verified player bundled with this application's FFmpeg."""
-    root = Path(app_dir or ROOT).resolve()
     try:
-        manifest = json.loads((root / "tools/dependencies.json").read_text(encoding="utf-8-sig"))
-        records = manifest.get("tools", []) if isinstance(manifest, dict) else []
-        record = next(item for item in records if isinstance(item, dict) and item.get("name") == "FFmpeg"
-                      and item.get("sha256") == FFMPEG_ARCHIVE_SHA256)
-        executable = record["executable"]
-        if not isinstance(executable, str) or Path(executable).is_absolute():
-            raise ValueError("Expected a bundled FFmpeg path")
-        player = (root / executable).with_name("ffplay.exe").resolve(strict=True)
-        if not player.is_relative_to(root / "tools") or not player.is_file():
-            raise ValueError("Expected the bundled FFplay executable")
-    except (OSError, ValueError, TypeError, KeyError, StopIteration) as error:
-        raise FileNotFoundError("The bundled source player is missing. Restore the project's FFmpeg 7.1.1 tools to watch sections.") from error
-    with player.open("rb") as stream:
-        digest = hashlib.file_digest(stream, "sha256").hexdigest()
-    if digest != FFPLAY_SHA256:
-        raise RuntimeError("The bundled source player failed its integrity check. Restore the project's verified FFmpeg 7.1.1 tools.")
-    return player
+        return bundled_tool("ffplay", app_dir or ROOT)
+    except FileNotFoundError as error:
+        raise FileNotFoundError("The bundled source player is missing or invalid. Run install.cmd to watch sections.") from error
 
 
 def normalize_section(source, start, end, *, source_duration=None, context=2.0):

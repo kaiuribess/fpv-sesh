@@ -50,29 +50,17 @@ def run(cmd: Sequence[str | os.PathLike[str]], log_file=None, timeout=None,
 
 
 def locate_tools() -> tuple[str, str]:
-    """Prefer explicit overrides, then isolated tools, then existing PATH tools."""
-    found = []
-    for name in ("ffmpeg", "ffprobe"):
-        override = os.environ.get(f"FPVSESH_{name.upper()}")
-        if override:
-            candidate = Path(override).expanduser().resolve()
-            if not candidate.is_file():
-                raise FileNotFoundError(f"FPVSESH_{name.upper()} is not a file: {candidate}")
-            found.append(str(candidate))
-            continue
-        executable = name + (".exe" if os.name == "nt" else "")
-        # This tested build supports the installed NVENC driver. A newer
-        # downloaded benchmark build can require a newer NVIDIA API.
-        pinned = PROJECT_ROOT / "tools" / "ffmpeg-7.1.1" / "ffmpeg-7.1.1-full_build" / "bin" / executable
-        local = ([pinned] if pinned.is_file() else
-                 sorted((PROJECT_ROOT / "tools").glob(f"**/{executable}")))
-        if local:
-            found.append(str(local[0].resolve()))
-        elif shutil.which(name):
-            found.append(str(Path(shutil.which(name)).resolve()))
-        else:
-            raise FileNotFoundError(f"{name} is missing. Run the project's setup script.")
-    return found[0], found[1]
+    """Use a deliberately supplied pair, otherwise the verified release tools."""
+    from .toolchain import bundled_tool
+    overrides = [os.environ.get(f"FPVSESH_{name}") for name in ("FFMPEG", "FFPROBE")]
+    if any(overrides):
+        if not all(overrides):
+            raise ValueError("Set both FPVSESH_FFMPEG and FPVSESH_FFPROBE to a matching tool pair.")
+        paths = [Path(value).expanduser().resolve(strict=True) for value in overrides]
+        if not all(path.is_file() for path in paths):
+            raise FileNotFoundError("Both video-tool overrides must refer to existing files.")
+        return str(paths[0]), str(paths[1])
+    return tuple(str(bundled_tool(name, PROJECT_ROOT)) for name in ("ffmpeg", "ffprobe"))
 
 
 def _number(value: Any, default=None):

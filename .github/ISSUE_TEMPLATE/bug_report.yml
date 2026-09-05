@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible editing, setup or interface problem.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use synthetic media where possible. Remove private paths, tokens, location data and recognizable personal footage from logs or screenshots. For vulnerabilities, follow SECURITY.md instead."
+  - type: input
+    id: version
+    attributes:
+      label: Release or commit
+      placeholder: Release version or short commit ID
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows and Python versions, GPU/driver if relevant, and whether optional models are installed. Redact usernames and full local paths.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and settings
+      description: Give the shortest steps that reproduce the problem, including settings and media properties. Do not upload a whole job folder.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted error or evidence
+      description: Include the relevant Activity message or small diagnostic excerpt. State what you actually checked.

@@ -1,0 +1,18 @@
+name: Feature request
+description: Describe an editing workflow that could be improved.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The workflow or problem
+      description: Describe what you are trying to do and where the current behavior falls short.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior
+      description: Include a concrete example and any alternatives you considered. Use synthetic examples without private footage.
+    validations:
+      required: true

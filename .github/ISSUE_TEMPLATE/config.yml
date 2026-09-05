@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: User guide and troubleshooting
+    url: https://github.com/kaiuribess/fpv-sesh/blob/main/docs/troubleshooting.md
+    about: Check installation, rendering, playback and recognition guidance.
+  - name: Security reporting policy
+    url: https://github.com/kaiuribess/fpv-sesh/blob/main/SECURITY.md
+    about: Report suspected vulnerabilities without posting exploit details publicly.

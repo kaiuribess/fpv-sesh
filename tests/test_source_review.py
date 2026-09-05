@@ -17,19 +17,17 @@ class SourceReviewTests(unittest.TestCase):
         self.root = Path(self.temp.name).resolve()
         self.source = self.root / "飞行 & $HOME's [clip].mp4"
         self.source.write_bytes(b"untouched original recording")
-        self.player = self.root / "tools/ffmpeg-7.1.1/bin/ffplay.exe"
+        self.player = self.root / "tools/ffmpeg-test/bin/ffplay.exe"
         self.player.parent.mkdir(parents=True)
         self.player.write_bytes(b"mock verified player")
-        self.record = {"name": "FFmpeg", "sha256": source_review.FFMPEG_ARCHIVE_SHA256,
-                       "executable": "tools/ffmpeg-7.1.1/bin/ffmpeg.exe"}
+        self.record = {"name": "FFmpeg", "required": True,
+                       "player_executable": "tools/ffmpeg-test/bin/ffplay.exe",
+                       "executable_sha256": {"ffplay": hashlib.sha256(self.player.read_bytes()).hexdigest()}}
         (self.root / "tools/dependencies.json").write_text(json.dumps({"tools": [self.record]}))
         self.probe_patch = patch.object(source_review, "probe", return_value={"duration": 20.0})
         self.probe = self.probe_patch.start()
-        self.hash_patch = patch.object(source_review, "FFPLAY_SHA256", hashlib.sha256(self.player.read_bytes()).hexdigest())
-        self.hash_patch.start()
 
     def tearDown(self):
-        self.hash_patch.stop()
         self.probe_patch.stop()
         self.temp.cleanup()
 
@@ -50,7 +48,7 @@ class SourceReviewTests(unittest.TestCase):
             source_review.find_player(self.root)
 
     def test_missing_or_untrusted_player_never_uses_path_fallback(self):
-        self.record["sha256"] = "0"*64
+        self.record["player_executable"] = "../outside/ffplay.exe"
         (self.root / "tools/dependencies.json").write_text(json.dumps({"tools": [self.record]}))
         with self.assertRaisesRegex(FileNotFoundError, "bundled source player"):
             source_review.find_player(self.root)

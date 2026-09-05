@@ -142,8 +142,10 @@ class MediaTests(unittest.TestCase):
     def test_hdr_metadata_is_explicitly_flagged(self):
         output = self.folder / "pq metadata.mp4"
         media.run([self.ffmpeg, "-v", "error", "-nostdin", "-i", str(self.silent),
+                   "-vf", "setparams=color_primaries=bt2020:color_trc=smpte2084:colorspace=bt2020nc",
                    "-c:v", "libx264", "-x264-params",
-                   "colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc", str(output)])
+                   "colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc",
+                   "-color_primaries", "bt2020", "-color_trc", "smpte2084", "-colorspace", "bt2020nc", str(output)])
         result = media.probe(output)
         self.assertTrue(result["hdr"])
         self.assertEqual(result["color_transfer"], "smpte2084")

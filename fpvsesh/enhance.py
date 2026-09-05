@@ -10,14 +10,25 @@ import shutil
 import subprocess
 import time
 import uuid
+from .media import locate_tools
 
 ROOT = Path(__file__).resolve().parents[1]
-FFMPEG = ROOT / 'tools/ffmpeg-7.1.1/ffmpeg-7.1.1-full_build/bin/ffmpeg.exe'
-FFPROBE = FFMPEG.with_name('ffprobe.exe')
 VIDEO2X = ROOT / 'tools/video2x-6.4.0/video2x.exe'
 MODEL_VERSION = 'video2x-6.4.0/realesrgan-plus-x4'
 CREATE_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 BENCHMARK_SIGNATURE = ROOT / 'logs/backend-tested-signature.json'
+
+
+def _selected_tools(ffmpeg=None, ffprobe=None):
+    # Resolve only when requested: importing the application before setup must
+    # still work. Both normal rendering and diagnostics use the current bundle.
+    if ffmpeg is None and ffprobe is None:
+        ffmpeg, ffprobe = locate_tools()
+    elif ffmpeg is None:
+        ffmpeg = Path(ffprobe).with_name('ffmpeg.exe' if Path(ffprobe).suffix.lower() == '.exe' else 'ffmpeg')
+    elif ffprobe is None:
+        ffprobe = Path(ffmpeg).with_name('ffprobe.exe' if Path(ffmpeg).suffix.lower() == '.exe' else 'ffprobe')
+    return Path(ffmpeg), Path(ffprobe)
 
 
 def _detected_gpu() -> dict:
@@ -36,22 +47,25 @@ def _detected_gpu() -> dict:
 
 def _tool_hashes(*, ffmpeg=None, ffprobe=None) -> dict:
     """Compare actual binaries and model files with the saved local benchmark."""
-    paths = [FFMPEG, FFPROBE, VIDEO2X,
+    paths = [VIDEO2X,
              VIDEO2X.parent / 'models/realesrgan/realesrgan-plus-x4.bin',
              VIDEO2X.parent / 'models/realesrgan/realesrgan-plus-x4.param']
     paths += sorted(VIDEO2X.parent.glob('*.dll'))
+    try:
+        selected_ffmpeg, selected_ffprobe = _selected_tools(ffmpeg, ffprobe)
+        selected = {'ffmpeg': selected_ffmpeg, 'ffprobe': selected_ffprobe}
+    except (OSError, RuntimeError, ValueError):
+        selected = {'ffmpeg': None, 'ffprobe': None}
+    selected.update({str(path.relative_to(ROOT)).replace('\\', '/'): path for path in paths})
     hashes = {}
-    for path in paths:
-        actual_path = path
-        if path == FFMPEG and ffmpeg is not None:
-            actual_path = Path(ffmpeg)
-        elif path == FFPROBE and ffprobe is not None:
-            actual_path = Path(ffprobe)
+    for name, actual_path in selected.items():
         try:
+            if actual_path is None:
+                raise FileNotFoundError('Media tools are not installed')
             with actual_path.open('rb') as handle:
-                hashes[str(path.relative_to(ROOT)).replace('\\', '/')] = hashlib.file_digest(handle, 'sha256').hexdigest()
+                hashes[name] = hashlib.file_digest(handle, 'sha256').hexdigest()
         except OSError:
-            hashes[str(path.relative_to(ROOT)).replace('\\', '/')] = None
+            hashes[name] = None
     return hashes
 
 
@@ -93,7 +107,7 @@ def backend_status(*, ffmpeg=None, ffprobe=None) -> dict:
         'ai_benchmark_fps': cuda['fps'] if cuda['available'] else measured.get('ai_benchmark_fps'),
         'ai_peak_total_gpu_memory_mib': cuda['peak_total_gpu_memory_mib'] if cuda['available'] else measured.get('ai_peak_total_gpu_memory_mib'),
         'ai_profile': cuda['profile'] if cuda['available'] else None,
-        'version': 'ffmpeg-7.1.1/cuda-real-esrgan-v1' if cuda['available'] else 'ffmpeg-7.1.1/libplacebo; video2x-6.4.0-ai-disabled',
+        'version': 'current-ffmpeg/cuda-real-esrgan-v1' if cuda['available'] else 'current-ffmpeg/libplacebo; video2x-6.4.0-ai-disabled',
         'warnings': warnings,
     }
 
@@ -101,7 +115,8 @@ def backend_status(*, ffmpeg=None, ffprobe=None) -> dict:
 def _probe(path: Path, ffprobe: Path) -> dict:
     p = subprocess.run([str(ffprobe), '-v', 'error', '-select_streams', 'v:0',
                         '-show_streams', '-show_format', '-of', 'json', str(path)],
-                       capture_output=True, text=True, creationflags=CREATE_FLAGS)
+                       capture_output=True, text=True, encoding='utf-8', errors='replace',
+                       timeout=120, creationflags=CREATE_FLAGS)
     if p.returncode:
         raise RuntimeError(p.stderr[-1500:])
     data = json.loads(p.stdout)
@@ -191,8 +206,7 @@ def enhance_segment(input_path: Path, output_path: Path, settings: dict, log=pri
     source_path, destination = Path(input_path).resolve(), Path(output_path).resolve()
     if source_path == destination:
         raise ValueError('An output must never overwrite its source.')
-    ffmpeg = Path(settings.get('ffmpeg', FFMPEG))
-    ffprobe = Path(settings.get('ffprobe', ffmpeg.with_name('ffprobe.exe')))
+    ffmpeg, ffprobe = _selected_tools(settings.get('ffmpeg'), settings.get('ffprobe'))
     source = _probe(source_path, ffprobe)
     width, height = int(settings.get('width', 3840)), int(settings.get('height', 2160))
     if width <= 0 or height <= 0 or width % 2 or height % 2:

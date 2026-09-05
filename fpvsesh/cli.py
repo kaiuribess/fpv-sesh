@@ -3,15 +3,13 @@ import argparse
 import hashlib
 from datetime import datetime
 import json
-import os
 from pathlib import Path
 import sys
-import time
 from .analysis import analyze, candidates_from_analysis, save_json
 from .media import probe, inspect_timestamps, hardware_diagnostics, fps_decision, choose_fps
 from .planner import plan
 from .render import render_timeline, make_audio, ensure_space
-from .control import Cancelled
+from .control import Cancelled, acquire_run_lock, check_control
 from .settings import DEFAULTS, resolve_settings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,7 +85,8 @@ def make(args):
     for d in ["input", "music", "output", "cache", "models", "logs"]: (ROOT / d).mkdir(exist_ok=True)
     job = Path(args.job).expanduser().resolve() if args.job else ROOT / "output" / ("Sesh-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f"))
     # Jobs and mutable outputs live only inside this application, never input/source directories.
-    if not job.is_relative_to(ROOT / "output"): raise ValueError("Job folder must be inside FPV Sesh/output")
+    if job == (ROOT / "output").resolve() or not job.is_relative_to((ROOT / "output").resolve()):
+        raise ValueError("Choose a job folder inside FPV Sesh/output, not the output folder itself")
     job.mkdir(parents=True, exist_ok=True)
     def event(stage, progress, message):
         entry = {"stage": stage, "progress": round(max(0,min(1,progress)), 4), "message": message, "job": str(job), "time": datetime.now().isoformat()}
@@ -96,28 +95,11 @@ def make(args):
         with (job / "events.jsonl").open("a", encoding="utf-8") as f: f.write(json.dumps(entry) + "\n")
     control = ROOT / "cache" / "control.json"
     def checkpoint():
-        while control.exists():
-            try: action = json.loads(control.read_text(encoding="utf-8")).get("action")
-            except (ValueError, OSError): return
-            if action == "cancel":
-                control.unlink(missing_ok=True)
-                raise Cancelled("Cancelled safely at a stage/segment boundary; completed segments are cached")
-            if action != "pause":
-                control.unlink(missing_ok=True)
-                return
-            if not getattr(checkpoint, "paused", False):
-                event("paused", 0, "Paused at a safe boundary; use Resume to continue")
-                checkpoint.paused = True
-            time.sleep(.3)
-        checkpoint.paused = False
+        check_control(control,
+                      on_pause=lambda: event("paused", 0, "Paused at a safe boundary; use Resume to continue"),
+                      on_resume=lambda: event("resumed", 0, "Resuming the saved operation"))
     # OS lock releases automatically even if the process is interrupted.
-    lock = (ROOT / "cache" / "run.lock").open("a+b")
-    lock.seek(0)
-    lock.write(b"0"); lock.flush(); lock.seek(0)
-    if os.name == "nt":
-        import msvcrt
-        try: msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError: raise RuntimeError("Another FPV Sesh job is running; pause/cancel it before starting another")
+    lock = acquire_run_lock(ROOT / "cache")
     try:
         control.unlink(missing_ok=True)
         saved = json.loads((job / "settings.json").read_text(encoding="utf-8")) if (job / "settings.json").exists() else {}
@@ -145,12 +127,7 @@ def make(args):
             music_info.pop("cache_hit", None)
             settings["music"] = music_info["path"]
             settings["music_sha256"] = music_info["sha256"]
-            save_json(job / "music-analysis.json", music_info)
-        else:
-            (job / "music-analysis.json").unlink(missing_ok=True)
-            (job / "music-mix.json").unlink(missing_ok=True)
         settings.update({"inputs": paths, "stabilization": "disabled: no validated gyro synchronization or calibration"})
-        save_json(job / "settings.json", settings)
         event("diagnostics", 0, "Inspecting hardware and source identities")
         ensure_space(ROOT, 5 * 2**30)
         diagnostics = hardware_diagnostics()
@@ -196,6 +173,16 @@ def make(args):
                 p["frame_pts"] = scan["pts"]
                 warnings.append(f"{p['filename']}: VFR mapped by actual presentation timestamps; output uses explicit constant-rate resampling")
             probes.append(p)
+        # A rejected source or cancelled preflight must leave the previously
+        # saved edit's settings and soundtrack records intact. Persist resume
+        # inputs only after EVERY recording passes interpretation and decoding.
+        checkpoint()
+        save_json(job / "settings.json", settings)
+        if music_info:
+            save_json(job / "music-analysis.json", music_info)
+        else:
+            (job / "music-analysis.json").unlink(missing_ok=True)
+            (job / "music-mix.json").unlink(missing_ok=True)
         save_json(job / "sources.json", probes)
         analyses = []
         for p in probes:
@@ -281,6 +268,9 @@ def make(args):
         (job / "report.md").write_text(report, encoding="utf-8")
         event("complete", 1, f"Finished {'4K reel and preview' if final else 'preview'}: {job}")
     except Cancelled as e:
+        # The operation has ended and still owns the run lock. Clear its stale
+        # command only here, never while a newer command could control a worker.
+        control.unlink(missing_ok=True)
         event("cancelled", 0, str(e))
     except Exception as e:
         event("error", 0, str(e))

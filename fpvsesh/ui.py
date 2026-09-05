@@ -16,6 +16,7 @@ import uuid
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageDraw, ImageOps, ImageTk
+from . import __version__
 
 
 APP_DIR = Path(__file__).resolve().parents[1]
@@ -113,9 +114,12 @@ class SeshApp(tk.Tk):
         self._make_styles()
         self._build()
         self._seed_inputs()
+        self._refresh_optional_controls()
         self._refresh_diagnostics()
         self._load_recent_job()
         self.protocol("WM_DELETE_WINDOW", self._close)
+        self.bind("<F1>", lambda _: self._show_help())
+        self.bind("<FocusIn>", self._reveal_focus, add="+")
         self._poll_after = self.after(120, self._poll)
 
     def _make_styles(self):
@@ -179,6 +183,10 @@ class SeshApp(tk.Tk):
         style.map("Treeview.Heading", background=[("active", "#334038")])
         style.configure("Studio.TNotebook", background=BG, borderwidth=0, tabmargins=0)
         style.layout("Studio.TNotebook.Tab", [])
+        style.configure("Help.TNotebook", background=BG, borderwidth=0)
+        style.configure("Help.TNotebook.Tab", background=FIELD, foreground=INK, padding=(10, 6))
+        style.map("Help.TNotebook.Tab", background=[("selected", "#344522"), ("active", "#35413a")],
+                  foreground=[("selected", LIME), ("active", INK)])
         self._ttk_style = style
 
     def _build(self):
@@ -200,6 +208,8 @@ class SeshApp(tk.Tk):
                  font=("Segoe UI", 8, "bold"), anchor="w").pack(side="bottom", fill="x", padx=24, pady=(0, 17))
         tk.Label(self.sidebar, textvariable=self.workspace_text, background=BG, foreground=MUTED,
                  font=("Segoe UI", 9), justify="left", anchor="w", wraplength=130).pack(side="bottom", fill="x", padx=24, pady=(0, 9))
+        self.help_button = ttk.Button(self.sidebar, text="Help & setup", command=self._show_help)
+        self.help_button.pack(side="bottom", fill="x", padx=12, pady=(0, 10))
         tk.Frame(shell, background="#252d2b", width=1).pack(side="left", fill="y")
         main = ttk.Frame(shell, style="Workspace.TFrame", padding=(22, 18, 20, 16))
         main.pack(side="left", fill="both", expand=True)
@@ -210,8 +220,8 @@ class SeshApp(tk.Tk):
         self.page_description = tk.StringVar(value="Import footage, choose an edit, then render.")
         ttk.Label(header, textvariable=self.page_title, style="Heading.TLabel").pack(anchor="w")
         ttk.Label(header, textvariable=self.page_description, style="OutsideMuted.TLabel").pack(anchor="w", pady=(4, 0))
-        self.gpu_status = tk.StringVar(value="Checking GPU")
-        self.gpu_text = tk.StringVar(value="GPU diagnostics pending")
+        self.gpu_status = tk.StringVar(value="Local processing")
+        self.gpu_text = tk.StringVar(value="Hardware is checked when processing starts. Open Help & setup for installation and troubleshooting.")
         self.gpu_badge = tk.Label(header, textvariable=self.gpu_status, background="#26321e", foreground=LIME,
                                  font=("Segoe UI", 9, "bold"), padx=13, pady=8)
         self.gpu_badge.place(relx=1, x=-2, y=9, anchor="ne")
@@ -454,6 +464,7 @@ class SeshApp(tk.Tk):
         self.table.pack(side="left", fill="both", expand=True)
         self.table.bind("<Configure>", lambda event: self.table.column("reason", width=max(150, event.width - 402)))
         self.table.bind("<Double-1>", self._show_candidate)
+        self.table.bind("<Return>", self._show_candidate)
         hardware = ttk.Frame(log, padding=14)
         hardware.pack(fill="x", pady=(0, 12))
         ttk.Label(hardware, text="LOCAL RENDER ENGINE", style="Eyebrow.TLabel").pack(anchor="w", pady=(0, 7))
@@ -498,6 +509,7 @@ class SeshApp(tk.Tk):
         self.flight_table.pack(side="left", fill="both", expand=True)
         self.flight_table.bind("<Configure>", lambda event: self.flight_table.column("evidence", width=max(150, event.width - 557)))
         self.flight_table.bind("<Double-1>", self._show_flight_event)
+        self.flight_table.bind("<Return>", self._show_flight_event)
         self.flight_table.bind("<<TreeviewSelect>>", lambda _: self._refresh_watch_section())
 
         variables = [self.style_value, self.duration_value, self.look_value, self.quality_value, self.codec_value,
@@ -524,6 +536,22 @@ class SeshApp(tk.Tk):
             height = min(220, max(125, event.height - 525))
             if int(self.hero_canvas.cget("height")) != height:
                 self.hero_canvas.configure(height=height)
+
+    def _reveal_focus(self, event):
+        widget = event.widget
+        page = self.notebook.select()
+        canvas = self._scroll_pages.get(str(page))
+        if not canvas or not str(widget).startswith(str(canvas) + "."):
+            return
+        self.update_idletasks()
+        top = widget.winfo_rooty() - canvas.winfo_rooty()
+        bottom = top + widget.winfo_height()
+        region = canvas.bbox("all")
+        if not region or region[3] <= canvas.winfo_height():
+            return
+        delta = top - 10 if top < 10 else bottom - canvas.winfo_height() + 10 if bottom > canvas.winfo_height() - 10 else 0
+        if delta:
+            canvas.yview_moveto((canvas.canvasy(0) + delta) / region[3])
 
     def _new_page(self, label, position=None, scroll=True):
         outer = ttk.Frame(self.notebook, style="Workspace.TFrame")
@@ -568,6 +596,8 @@ class SeshApp(tk.Tk):
             tile.bind("<Button-1>", lambda _, page=tab: self.notebook.select(page))
             tile.bind("<Return>", lambda _, page=tab: self.notebook.select(page))
             tile.bind("<space>", lambda _, page=tab: self.notebook.select(page))
+            tile.bind("<FocusIn>", lambda _: self._sync_navigation())
+            tile.bind("<FocusOut>", lambda _: self._sync_navigation())
             self._nav_items[tab] = (tile, short_names[label], index + 1)
         self.notebook.bind("<<NotebookTabChanged>>", lambda _: self._sync_navigation())
         self._sync_navigation()
@@ -594,6 +624,8 @@ class SeshApp(tk.Tk):
                 tile.create_text(15, 23, text=f"{number:02}", font=("Segoe UI", 8), fill="#5c6860")
             tile.create_text(31, 23, text=label, anchor="w", fill=LIME if active else MUTED,
                              font=("Segoe UI", 10, "bold" if active else "normal"))
+            if self.focus_get() is tile:
+                tile.create_rectangle(2, 2, 148, 43, outline=LIME, dash=(2, 2))
         if selected:
             full = self.notebook.tab(selected, "text")
             self.page_title.set("Activity" if full == "Progress & warnings" else full)
@@ -608,14 +640,12 @@ class SeshApp(tk.Tk):
                              highlightbackground=LIME if selected else LINE, highlightcolor=LIME)
 
     def _find_thumbnail_ffmpeg(self):
-        manifest = read_json(self.app_dir / "tools" / "dependencies.json", {})
-        for record in manifest.get("tools", []) if isinstance(manifest, dict) else []:
-            if "ffmpeg" in str(record.get("name", "")).lower():
-                path = self.app_dir / record.get("executable", "")
-                if path.is_file():
-                    return path
-        candidates = list((self.app_dir / "tools").glob("ffmpeg*/**/ffmpeg.exe"))
-        return candidates[0] if candidates else None
+        from .media import locate_tools
+        try:
+            ffmpeg, _ = locate_tools()
+            return Path(ffmpeg)
+        except (OSError, RuntimeError, ValueError):
+            return None
 
     def _request_thumbnail(self, source, seconds=12):
         source = Path(source)
@@ -629,10 +659,10 @@ class SeshApp(tk.Tk):
             return key
         self._thumb_requested.add(key)
         output = self.app_dir / "cache" / "ui-thumbnails" / (key + ".jpg")
-        ffmpeg = self._find_thumbnail_ffmpeg()
         def extract():
             try:
                 if not output.is_file():
+                    ffmpeg = self._find_thumbnail_ffmpeg()
                     if not ffmpeg:
                         self.events.put(("thumbnail", {"key": key, "error": "Frame extraction unavailable"}))
                         return
@@ -773,11 +803,10 @@ class SeshApp(tk.Tk):
         self.settings_widgets.append((scale, "normal"))
 
     def _seed_inputs(self):
-        supplied = Path.home() / "Downloads"
-        self.files = [supplied / f"DJIU000{index}.mp4" for index in range(3) if (supplied / f"DJIU000{index}.mp4").is_file()]
-        if not self.files:
-            self.folder = self.app_dir / "input"
+        self.files, self.folder = [], None
         self._refresh_inputs()
+        self.stage_text.set("Add recordings to start your first edit.")
+        self.detail_text.set("Choose clips, optionally add music, then review a preview. Help & setup explains the next steps.")
 
     def _refresh_inputs(self):
         self.input_list.delete(0, "end")
@@ -792,6 +821,7 @@ class SeshApp(tk.Tk):
             self._hero_key = None
             self._hero_source = None
             self._paint_hero()
+            self._refresh_outputs()
             return
         probes = read_json(self.job_dir / "sources.json", []) if self.job_dir else []
         durations = {item.get("source"): item.get("duration", 0) for item in probes if isinstance(item, dict)}
@@ -805,9 +835,13 @@ class SeshApp(tk.Tk):
             duration = durations.get(str(path), 0)
             seconds = float(shot.get("start", 0)) + .5 if shot else min(12, duration * .25) if duration else 1
             key = self._request_thumbnail(path, seconds)
-            card = tk.Canvas(self.clip_strip, width=110, height=100, background=SURFACE, highlightthickness=0, cursor="hand2")
+            card = tk.Canvas(self.clip_strip, width=110, height=100, background=SURFACE, highlightthickness=1,
+                             highlightbackground=SURFACE, highlightcolor=LIME, cursor="hand2", takefocus=True)
             card.grid(row=index // 3, column=index % 3, sticky="ew", padx=(0 if index % 3 == 0 else 5, 0), pady=(0, 5))
             card.bind("<Button-1>", lambda event, number=index: self._select_clip(number, event))
+            card.bind("<Return>", lambda event, number=index: self._select_clip(number, event))
+            card.bind("<space>", lambda event, number=index: self._select_clip(number, event))
+            card.bind("<Delete>", lambda event, number=index: self._remove_focused_clip(number))
             card.bind("<Configure>", lambda _: self._paint_clip_cards())
             self._clip_cards.append({"canvas": card, "source": path, "key": key})
         self.input_text.set(f"{len(self.files)} recording{'s' if len(self.files) != 1 else ''} imported · Ctrl-click to select several." if self.files
@@ -819,6 +853,7 @@ class SeshApp(tk.Tk):
             self.hero_subtitle.set("A frame from your footage will appear here.")
             self._hero_key = self._hero_source = None
             self._paint_hero()
+        self._refresh_outputs()
 
     def _choose_files(self):
         selected = filedialog.askopenfilenames(parent=self, title="Choose original session recordings", filetypes=MEDIA_TYPES)
@@ -835,11 +870,18 @@ class SeshApp(tk.Tk):
 
     def _remove_files(self):
         selected = self.input_list.curselection()
-        if self.folder and selected:
+        if self.folder:
             self.folder = None
         else:
             self.files = [path for index, path in enumerate(self.files) if index not in selected]
         self._refresh_inputs()
+
+    def _remove_focused_clip(self, index):
+        if self.process is None:
+            if index not in self.input_list.curselection():
+                self._select_clip(index)
+            self._remove_files()
+        return "break"
 
     def _settings_changed(self, *_):
         if self._restoring_settings:
@@ -856,6 +898,7 @@ class SeshApp(tk.Tk):
         if self.job_dir:
             self.recognition_dirty = True
             self.review_text.set("Recognition changed. Use Refresh understanding on the Flight map to update estimates without rendering.")
+        self._refresh_optional_controls()
         self._refresh_outputs()
 
     def _refresh_dependent_controls(self):
@@ -866,6 +909,141 @@ class SeshApp(tk.Tk):
             self.remove_music_button.configure(state="normal" if self.music_path and self.process is None else "disabled")
         if hasattr(self, "music_text"):
             self.music_text.set(str(self.music_path) if self.music_path else "No music selected — source sound only.")
+
+    def _optional_files_present(self):
+        folder = self.app_dir / "models" / "qwen3-vl-2b"
+        manifest = read_json(folder / "manifest.json", {})
+        assets = manifest.get("assets", []) if isinstance(manifest, dict) else []
+        if not isinstance(assets, list) or not assets:
+            return False
+        try:
+            runtime = self.app_dir / ".venv-ai"
+            if not (runtime / "Scripts/python.exe").is_file() or not (runtime / "Lib/site-packages/transformers/models/qwen3_vl").is_dir():
+                return False
+            for item in assets:
+                path = (folder / item["file"]).resolve()
+                if not path.is_relative_to(folder.resolve()) or not path.is_file() or path.stat().st_size != item["size_bytes"]:
+                    return False
+            return True
+        except (OSError, TypeError, KeyError):
+            return False
+
+    def _refresh_optional_controls(self):
+        """Fast presence hints only; the processing backend verifies integrity."""
+        present = self._optional_files_present()
+        if self.recognition_value.get() == "Off":
+            note = "Video recognition is off. Motion estimates still work."
+        else:
+            note = "Runs locally using an internet-trained model. Trick labels are estimates. "
+            note += ("Model files found; checked before analysis." if present else
+                     "Optional model files are missing or incomplete; motion estimates still work. See Help & setup.")
+        self.recognition_note.configure(text=note)
+        data = read_json(self.app_dir / "logs/diagnostics.json", {})
+        tested = isinstance(data, dict) and data.get("ai_available") is True
+        ai_files = ((self.app_dir / ".venv-ai/Scripts/python.exe").is_file() and
+                    (self.app_dir / "models/real-esrgan-cuda/RealESRGAN_x2plus.pth").is_file())
+        available = tested and ai_files
+        self.quality_combo.configure(values=list(QUALITIES) if available else ["Auto", "Clean upscale"])
+        self.quality_note.set("AI detail has a saved local check and is verified again before rendering; it may change fine textures."
+                              if available else "Auto and Clean upscale work without optional AI. AI detail needs installation and a local sample check; see Help & setup.")
+        return {"video_files_present": present, "ai_saved_check": available}
+
+    def _help_topics(self):
+        status = self._refresh_optional_controls()
+        return {
+            "Get started": (
+                "Install once with install.cmd, then open the studio with launch.cmd. Core editing supports 64-bit Python 3.12 or 3.13 with Tk; maintained Python 3.13 is recommended.\n\n"
+                "1. Add clips or choose a folder of original recordings. Nothing is imported automatically.\n\n"
+                "2. Choose the edit style and length. Natural color at 0% keeps the default look restrained. "
+                "For a first run, choose Stop at preview under After preview.\n\n"
+                "3. Music is optional. Add your own audio under Music, adjust its start and sound levels, or leave it empty for flight sound.\n\n"
+                "4. Review Moments: Keep, Exclude, or Add exact range, then Regenerate edit. Press Enter on a selected row for full evidence. "
+                "Flight map separates motion estimates from video observations; Watch section opens the original with context.\n\n"
+                "5. Choose social shapes if wanted. Full view preserves the scene; Crop to fill removes its edges. "
+                "Render final 4K when ready. Files opens the saved job.\n\n"
+                "Changing imported clips starts a new session with Make my sesh. Regeneration uses the saved job's recordings. "
+                "Original recordings are never replaced."),
+            "Optional features": (
+                f"Video model files: {'found (integrity is checked before analysis)' if status['video_files_present'] else 'missing or incomplete'}.\n"
+                f"AI detail: {'saved local check available' if status['ai_saved_check'] else 'installation and a local sample check required'}.\n\n"
+                "Ordinary editing works without either optional feature. Auto/Clean upscale are available. "
+                "Automatic video recognition falls back to motion estimates when its optional model is unavailable; Off skips video recognition. "
+                "Thorough takes longer. User examples are optional.\n\n"
+                "The setup guide explains setup-ai.ps1, setup-video.ps1 and the optional setup-vision.ps1 scene model. "
+                "Downloads can be several GB. The current optional AI packages require a separately supported runtime; check the setup guide before installing. "
+                "AI detail also requires the validate-ai sample check; installation alone does not enable it.\n\n"
+                "Recognition uses internet-trained weights locally. It does not upload your recordings or require an account/API key. "
+                "Named tricks remain estimates. Measured image rotation and the video model's original interpretation stay separate."),
+            "Troubleshooting": (
+                "Cannot start: run install.cmd, then launch.cmd. Run doctor.cmd for a local readiness report; setup.ps1 -CheckOnly checks installation files. "
+                "Core editing supports 64-bit Python 3.12 or 3.13 with Tk. Open the setup guide for optional AI runtime requirements.\n\n"
+                "Processing stopped: open Activity for the underlying message. Check available disk space and that originals/music still exist. "
+                "Resume selects a saved job; completed cached work is reused when valid.\n\n"
+                "Pause/cancel: a request may wait for the current supported stage to reach a safe boundary. Cancel keeps completed work. "
+                "A partial flight scan keeps finished observations; Refresh understanding continues it without rendering.\n\n"
+                "Model unavailable: base editing still works. Install the optional components, then use Refresh availability here. "
+                "The next analysis/render performs full checks. A prior diagnostic is not a promise that a changed GPU or model will work.\n\n"
+                "Keyboard: Tab/Shift+Tab moves through controls and scrolls them into view. Focus a recording card and press Enter/Space to select; "
+                "Ctrl+Space adds to the selection, Delete removes selected clips. Enter on a Moments/Flight map row opens details. F1 opens this help.\n\n"
+                "Open logs for local diagnostic files. Logs can include local paths and filenames; inspect them before sharing."),
+            "About": (
+                f"FPV Sesh {__version__}\n\nA local Windows FPV editing studio.\n\n"
+                "Original footage, music, jobs and exports stay on your computer. Optional model/software downloads have their own licenses. "
+                "Read the repository LICENSE and THIRD_PARTY_NOTICES files for details.\n\n"
+                "A 4K export does not create native camera detail. AI enhancement can alter texture; inspect a sample. "
+                "Flight understanding is an estimate, not proof of a named trick, complete airborne recovery or a geographic route.")}
+
+    def _show_help(self):
+        previous = getattr(self, "_help_window", None)
+        if previous is not None and previous.winfo_exists():
+            previous.lift()
+            return
+        window = self._help_window = tk.Toplevel(self)
+        window.withdraw()
+        window.title("FPV Sesh — Help & setup")
+        window.geometry("780x580")
+        window.minsize(600, 440)
+        window.configure(background=BG)
+        book = ttk.Notebook(window, style="Help.TNotebook")
+        self._help_texts = {}
+        for title, body in self._help_topics().items():
+            page = ttk.Frame(book)
+            book.add(page, text=title)
+            text = tk.Text(page, wrap="word", background=SURFACE, foreground=INK, font=("Segoe UI", 10),
+                           padx=16, pady=16, relief="flat", insertbackground=INK)
+            bar = ttk.Scrollbar(page, command=text.yview)
+            text.configure(yscrollcommand=bar.set)
+            bar.pack(side="right", fill="y")
+            text.pack(fill="both", expand=True)
+            text.insert("1.0", body)
+            text.configure(state="disabled")
+            text.bind("<Tab>", lambda event: (event.widget.tk_focusNext().focus_set(), "break")[1])
+            text.bind("<Shift-Tab>", lambda event: (event.widget.tk_focusPrev().focus_set(), "break")[1])
+            self._help_texts[title] = text
+        actions = ttk.Frame(window)
+        actions.pack(side="bottom", fill="x", padx=14, pady=(0, 14))
+        ttk.Button(actions, text="Setup guide", command=lambda: self._open_path(self.app_dir / "README.md")).pack(side="left")
+        ttk.Button(actions, text="Open logs", command=self._open_logs).pack(side="left", padx=7)
+        ttk.Button(actions, text="Refresh availability", command=self._refresh_help).pack(side="left")
+        ttk.Button(actions, text="Close", command=window.destroy).pack(side="right")
+        book.pack(fill="both", expand=True, padx=14, pady=14)
+        window.bind("<Escape>", lambda _: window.destroy())
+        if float(self.attributes("-alpha")) == 0:
+            window.attributes("-alpha", 0)
+        window.deiconify()
+
+    def _refresh_help(self):
+        for title, body in self._help_topics().items():
+            text = self._help_texts[title]
+            text.configure(state="normal")
+            text.delete("1.0", "end")
+            text.insert("1.0", body)
+            text.configure(state="disabled")
+
+    def _open_logs(self):
+        folder = self.app_dir / "logs"
+        folder.mkdir(parents=True, exist_ok=True)
+        self._open_path(folder)
 
     def _choose_music(self):
         selected = filedialog.askopenfilename(parent=self, title="Choose music for your session", filetypes=MUSIC_TYPES)
@@ -1105,16 +1283,29 @@ class SeshApp(tk.Tk):
         self._refresh_dependent_controls()
 
     def _pause(self):
+        if self.process is None:
+            return
+        action = "resume" if self.paused else "pause"
+        try:
+            write_json(self.app_dir / "cache" / "control.json", {"action": action})
+        except OSError as exc:
+            messagebox.showerror("Could not change processing state", str(exc), parent=self)
+            return
         self.paused = not self.paused
-        action = "pause" if self.paused else "resume"
-        write_json(self.app_dir / "cache" / "control.json", {"action": action})
         self.pause_button.configure(text="Resume" if self.paused else "Pause")
         self.detail_text.set("Pause requested — the current supported stage or segment will finish first." if self.paused
                              else "Resume requested — processing will continue from the current checkpoint.")
         self._log(self.detail_text.get())
 
     def _cancel(self):
-        write_json(self.app_dir / "cache" / "control.json", {"action": "cancel"})
+        if self.process is None:
+            return
+        try:
+            write_json(self.app_dir / "cache" / "control.json", {"action": "cancel"})
+        except OSError as exc:
+            self.closing = False
+            messagebox.showerror("Could not request cancellation", str(exc), parent=self)
+            return
         self.cancel_button.configure(state="disabled")
         self.pause_button.configure(state="disabled")
         self.detail_text.set("Cancel requested — waiting for a safe boundary. Completed outputs and cached segments are retained.")
@@ -1776,6 +1967,7 @@ class SeshApp(tk.Tk):
         if not hasattr(self, "preview_button"):
             return
         busy = self.process is not None
+        self.make_button.configure(state="normal" if not busy and (self.files or self.folder) else "disabled")
         preview = bool(self.job_dir and (self.job_dir / "preview.mp4").is_file())
         current_pending = busy or self.overrides_dirty or self.settings_dirty
         status = read_json(self.job_dir / "status.json", {}) if self.job_dir else {}
@@ -1829,14 +2021,10 @@ class SeshApp(tk.Tk):
         self._last_diagnostics = mtime
         gpu = data.get("gpu_name") or "not detected / diagnostic details in run report"
         encoder = data.get("encoder") or "pending encode test"
-        ai = bool(data.get("ai_available", False))
-        self.gpu_text.set(f"GPU: {gpu}  •  Encoder: {encoder}  •  AI inference: {'tested and available' if ai else 'not available'}")
-        self.gpu_status.set("●  GPU ready" if data.get("gpu_name") and data.get("encoder") else "CPU / fallback")
-        self.quality_combo.configure(values=list(QUALITIES) if ai else ["Auto", "Clean upscale"])
-        if not ai and self.quality_value.get() == "AI detail (slower)":
-            self.quality_value.set("Auto")
-        self.quality_note.set("Auto preserves your footage with the tested upscaler. AI is slower and can change fine textures." if ai
-                              else "AI is unavailable. Auto uses the tested standard upscaler.")
+        self.gpu_text.set(f"Saved hardware check — GPU: {gpu}  •  Encoder: {encoder}. Checked again when processing starts.")
+        detected = str(data.get("gpu_name", "")).strip().lower() not in ("", "not detected", "none", "unknown")
+        self.gpu_status.set("GPU detected" if detected else "CPU / fallback")
+        self._refresh_optional_controls()
         warnings = data.get("warnings", [])
         for warning in warnings if isinstance(warnings, list) else [warnings]:
             self._log_warning(str(warning))
@@ -1893,10 +2081,14 @@ class SeshApp(tk.Tk):
         details = "".join(traceback.format_exception(exc, value, tb))
         self._log(details)
         log_path = self.app_dir / "logs" / "ui-error.log"
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        with log_path.open("a", encoding="utf-8") as handle:
-            handle.write(details + "\n")
-        messagebox.showerror("FPV Sesh", f"{value}\n\nDetails were saved in logs/ui-error.log.", parent=self)
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("a", encoding="utf-8") as handle:
+                handle.write(details + "\n")
+            location = "Details were saved in logs/ui-error.log."
+        except OSError:
+            location = "The diagnostic file could not be saved. Details remain in Activity; check folder write permissions."
+        messagebox.showerror("FPV Sesh", f"{value}\n\n{location}", parent=self)
 
 
 def main():

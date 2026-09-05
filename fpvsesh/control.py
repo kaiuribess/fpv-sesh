@@ -2,12 +2,42 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import time
 
 
 class Cancelled(Exception):
     """The user stopped work at a boundary that preserves completed segments."""
+
+
+def acquire_run_lock(cache: Path):
+    """Acquire one OS-backed job lock; the caller must close the returned file.
+
+    Never rewrite a byte already locked by another Windows process. Closing the
+    handle also releases the lock after cancellation or an unexpected failure.
+    """
+    cache = Path(cache)
+    cache.mkdir(parents=True, exist_ok=True)
+    lock = (cache / "run.lock").open("a+b")
+    try:
+        if lock.seek(0, os.SEEK_END) == 0:
+            lock.write(b"0")
+            lock.flush()
+        lock.seek(0)
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock
+    except OSError as error:
+        lock.close()
+        raise RuntimeError("Another FPV Sesh job is running, or its lock is unavailable. Finish or cancel the running job before starting another.") from error
+    except BaseException:
+        lock.close()
+        raise
 
 
 def check_control(path: Path, *, on_pause=None, on_resume=None, poll_interval=.1):

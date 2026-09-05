@@ -6,6 +6,7 @@ from pathlib import Path
 import queue
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from fpvsesh.ui import SeshApp, SOCIAL_FORMATS, write_json, read_json
@@ -72,6 +73,9 @@ class UiSettingsTests(unittest.TestCase):
             self.app.after_cancel(self.app._poll_after)
             self.app._poll_after = None
         self.app.process = None
+        help_window = getattr(self.app, "_help_window", None)
+        if help_window is not None and help_window.winfo_exists():
+            help_window.destroy()
         self.directory.cleanup()
 
     @staticmethod
@@ -135,7 +139,133 @@ class UiSettingsTests(unittest.TestCase):
         self.app.recognition_value.set("Off")
         self.assertFalse(self.app.settings_dirty)
         self.assertTrue(self.app.recognition_dirty)
+        self.assertIn("recognition is off", self.app.recognition_note.cget("text"))
+        self.app.recognition_value.set("Automatic")
         self.assertIn("Runs locally using an internet-trained model", self.app.recognition_note.cget("text"))
+
+    def test_first_run_does_not_import_personal_downloads_or_an_implicit_folder(self):
+        downloads = self.root / "home/Downloads"
+        downloads.mkdir(parents=True)
+        for index in range(3):
+            (downloads / f"DJIU000{index}.mp4").write_bytes(b"personal recording fixture")
+        self.app.job_dir = None
+        with patch("fpvsesh.ui.Path.home", return_value=downloads.parent) as home:
+            self.app._seed_inputs()
+        home.assert_not_called()
+        self.assertEqual(self.app.files, [])
+        self.assertIsNone(self.app.folder)
+        self.assertTrue(self.app.make_button.instate(["disabled"]))
+        self.assertIn("Add recordings", self.app.stage_text.get())
+        self.assertTrue(self.app.help_button.winfo_ismapped())
+        self.assertEqual(len(list(downloads.iterdir())), 3)
+
+    def test_folder_remove_does_not_depend_on_hidden_list_selection(self):
+        self.app.folder = self.root
+        self.app._refresh_inputs()
+        self.assertEqual(self.app.input_list.curselection(), ())
+        self.assertTrue(self.app.make_button.instate(["!disabled"]))
+        self.app._remove_files()
+        self.assertIsNone(self.app.folder)
+        self.assertTrue(self.app.make_button.instate(["disabled"]))
+
+    def test_focused_offscreen_control_is_scrolled_into_view(self):
+        canvas = self.app._scroll_pages[str(self.app._pages["Session"])]
+        canvas.yview_moveto(0)
+        self.app.update()
+        widget = self.app.recognition_combo
+        self.assertGreater(widget.winfo_rooty(), canvas.winfo_rooty()+canvas.winfo_height())
+        self.app._reveal_focus(SimpleNamespace(widget=widget))
+        self.app.update()
+        self.assertGreaterEqual(widget.winfo_rooty(), canvas.winfo_rooty())
+        self.assertLessEqual(widget.winfo_rooty()+widget.winfo_height(), canvas.winfo_rooty()+canvas.winfo_height())
+        self.assertTrue(self.app.table.bind("<Return>"))
+        self.assertTrue(self.app.flight_table.bind("<Return>"))
+
+    def test_recording_cards_support_keyboard_selection_and_safe_removal(self):
+        second = self.root / "second.mp4"
+        second.touch()
+        self.app.files = [self.source, second]
+        self.app._refresh_inputs()
+        card = self.app._clip_cards[1]["canvas"]
+        self.assertEqual(int(card.cget("takefocus")), 1)
+        self.assertTrue(card.bind("<Return>"))
+        self.assertTrue(card.bind("<space>"))
+        self.assertTrue(card.bind("<Delete>"))
+        self.app._select_clip(1)
+        self.assertEqual(self.app._hero_source, second)
+        self.app._remove_focused_clip(1)
+        self.assertEqual(self.app.files, [self.source])
+        self.assertTrue(second.is_file())
+
+    def test_optional_feature_hints_do_not_hash_models_or_claim_missing_ai_is_ready(self):
+        with patch("hashlib.file_digest") as hashing:
+            state = self.app._refresh_optional_controls()
+        hashing.assert_not_called()
+        self.assertFalse(state["video_files_present"])
+        self.assertNotIn("AI detail (slower)", self.app.quality_combo["values"])
+        self.assertIn("motion estimates still work", self.app.recognition_note.cget("text"))
+        model = self.root / "models/qwen3-vl-2b"
+        model.mkdir(parents=True)
+        (model / "weights.bin").write_bytes(b"small presence fixture")
+        write_json(model / "manifest.json", {"assets": [{"file": "weights.bin", "size_bytes": 22}]})
+        runtime = self.root / ".venv-ai"
+        (runtime / "Scripts").mkdir(parents=True)
+        (runtime / "Scripts/python.exe").touch()
+        (runtime / "Lib/site-packages/transformers/models/qwen3_vl").mkdir(parents=True)
+        with patch("hashlib.file_digest") as hashing:
+            state = self.app._refresh_optional_controls()
+        hashing.assert_not_called()
+        self.assertTrue(state["video_files_present"])
+        self.assertIn("checked before analysis", self.app.recognition_note.cget("text"))
+        (model / "weights.bin").write_bytes(b"torn")
+        self.assertFalse(self.app._refresh_optional_controls()["video_files_present"])
+
+    def test_missing_gpu_diagnostics_never_show_gpu_ready(self):
+        write_json(self.root / "logs/diagnostics.json", {"gpu_name": "Not detected",
+            "encoder": "Not benchmarked for the detected configuration", "ai_available": False})
+        self.app._refresh_diagnostics()
+        self.assertEqual(self.app.gpu_status.get(), "CPU / fallback")
+        self.assertIn("Saved hardware check", self.app.gpu_text.get())
+        self.assertNotIn("tested standard", self.app.quality_note.get())
+
+    def test_thumbnail_tool_uses_verified_shared_selection_without_older_fallback(self):
+        current = self.root / "tools/current/ffmpeg.exe"
+        with patch("fpvsesh.media.locate_tools", return_value=(str(current), str(current.with_name("ffprobe.exe")))) as locate:
+            self.assertEqual(self.app._find_thumbnail_ffmpeg(), current)
+        locate.assert_called_once_with()
+        with patch("fpvsesh.media.locate_tools", side_effect=RuntimeError("Current tool verification failed")):
+            self.assertIsNone(self.app._find_thumbnail_ffmpeg())
+
+    def test_help_is_self_contained_and_opens_only_requested_local_files(self):
+        with patch.object(self.app, "_launch") as launch, patch.object(self.app, "_open_path") as opening:
+            self.app._show_help()
+            self.app._help_window.geometry("600x440")
+            self.app.update()
+            self.assertEqual(set(self.app._help_texts), {"Get started", "Optional features", "Troubleshooting", "About"})
+            self.assertIn("missing or incomplete", self.app._help_texts["Optional features"].get("1.0", "end"))
+            self.assertIn("F1 opens this help", self.app._help_texts["Troubleshooting"].get("1.0", "end"))
+            self.assertIn("FPV Sesh", self.app._help_texts["About"].get("1.0", "end"))
+            self.assertEqual(float(self.app._help_window.attributes("-alpha")), 0)
+            actions = next(child for child in self.app._help_window.winfo_children() if child.winfo_class() == "TFrame")
+            for button in actions.winfo_children():
+                self.assertTrue(button.winfo_ismapped())
+                self.assertGreaterEqual(button.winfo_width(), button.winfo_reqwidth())
+            opening.assert_not_called()
+            launch.assert_not_called()
+            self.app._open_logs()
+            opening.assert_called_once_with(self.root / "logs")
+
+    def test_failed_control_write_does_not_claim_pause_or_disable_cancel(self):
+        self.app.process = MagicMock()
+        self.app._set_busy(True)
+        with patch("fpvsesh.ui.write_json", side_effect=PermissionError("The cache folder is read-only")), \
+             patch("fpvsesh.ui.messagebox.showerror") as notice:
+            self.app._pause()
+            self.assertFalse(self.app.paused)
+            self.assertEqual(self.app.pause_button.cget("text"), "Pause")
+            self.app._cancel()
+        self.assertEqual(notice.call_count, 2)
+        self.assertTrue(self.app.cancel_button.instate(["!disabled"]))
 
     def test_refresh_understanding_launches_only_map_command_without_confirmation(self):
         self.app.recognition_value.set("Thorough")

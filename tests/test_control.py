@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 
-from fpvsesh.control import Cancelled, check_control
+from fpvsesh.control import Cancelled, check_control, acquire_run_lock
 
 
 def write_control(path, action):
@@ -83,6 +83,26 @@ class ControlTests(unittest.TestCase):
         finally:
             self.path.unlink(missing_ok=True)
             thread.join(1)
+
+
+    def test_os_lock_blocks_another_process_and_releases_after_close(self):
+        cache = Path(self.temp.name) / "cache"
+        code = ("from pathlib import Path\nfrom fpvsesh.control import acquire_run_lock\n"
+                "import sys\ntry:\n    handle = acquire_run_lock(Path(sys.argv[1]))\n"
+                "except RuntimeError as error:\n    print(str(error))\n    sys.exit(23)\n"
+                "handle.close()\n")
+        command = [sys.executable, "-c", code, str(cache)]
+        options = dict(capture_output=True, text=True, encoding="utf-8", timeout=10,
+                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        lock = acquire_run_lock(cache)
+        try:
+            blocked = subprocess.run(command, **options)
+            self.assertEqual(blocked.returncode, 23, blocked.stderr)
+            self.assertIn("Another FPV Sesh job is running", blocked.stdout)
+        finally:
+            lock.close()
+        resumed = subprocess.run(command, **options)
+        self.assertEqual(resumed.returncode, 0, resumed.stderr)
 
 
 class RecordingPipe(io.BytesIO):

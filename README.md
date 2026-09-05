@@ -2,6 +2,10 @@
 
 A local Windows FPV editing studio. Import a flying session, review complete moments, add your own music, and create a 4K master plus social versions. Original recordings stay untouched on your computer.
 
+**Early release:** automatic cuts and experimental trick labels need your review. There is no established accuracy benchmark for FPV maneuvers. Core editing needs no account, subscription, API key, cloud inference or optional model download.
+
+![FPV Sesh first-run studio with empty recording slots and local editing controls](docs/assets/studio.png)
+
 ## What is included
 
 - A dark creator studio with real footage cards, a large source preview, dedicated editing pages, and persistent render controls.
@@ -16,13 +20,17 @@ A local Windows FPV editing studio. Import a flying session, review complete mom
 
 ## Install and open
 
-Install **64-bit Python 3.12 with Tkinter** from [python.org](https://www.python.org/downloads/windows/). Open PowerShell here, run `& '.\setup.ps1'`, then double-click **launch.cmd**.
+1. Download the source ZIP from [Releases](https://github.com/kaiuribess/fpv-sesh/releases) and **extract the entire ZIP** to a writable local folder, such as `C:\FPV-Sesh`. Keep its files together.
+2. Install **64-bit Python 3.13.15 with Tkinter** from [python.org](https://www.python.org/downloads/release/python-31315/), then double-click **install.cmd**. Core setup supports Python 3.12 and 3.13; 3.13.15 is the current recommended Windows installer. Optional models have a separate Python 3.12 environment.
+3. Double-click **launch.cmd**, then use **+ Add clips** or **Folder**. Press **F1** for Help & setup.
 
-If needed, use `setup.ps1 -PythonPath 'C:\path\to\python.exe'`. `setup.ps1 -CheckOnly` checks an existing installation. Setup creates an isolated environment, installs pinned packages, and verifies the downloaded FFmpeg archive. Windows tar with 7z support is required. GPU acceleration depends on hardware/driver support; conventional CPU fallbacks are available. No driver or PowerShell policy changes are made.
+The first setup needs internet access to download dependencies and FFmpeg. Ordinary editing runs locally afterward. Windows 11 x64 is the tested desktop target. GPU encoding, scaling and optional inference depend on separate hardware/driver capabilities; CPU fallbacks can be much slower. Setup changes no GPU drivers or system security settings.
+
+Double-click **doctor.cmd** to inspect local readiness. For an explicitly selected runtime, use `setup.ps1 -PythonPath 'C:\Python\python.exe'`; `setup.ps1 -CheckOnly` checks an existing setup. See the [user guide](docs/user-guide.md) and [troubleshooting](docs/troubleshooting.md).
 
 ## Create and review
 
-Add recordings, choose style/duration, optionally add music, and choose social shapes. Make a preview, inspect the moments and framing, then render the final files. The automatic workflow can create both stages in one job.
+Add recordings, choose style/duration, optionally add music, and choose social shapes. For your first edit, set **After preview → Stop at preview**, then choose **Make my sesh**. Inspect the moments and framing before rendering the final. Leave Music empty to use only the original sound. The automatic workflow can create both stages in one job.
 
 **Natural / 0%** is the default for faithful color. **Blur** preserves the full flight view over a blurred background; **Fit** uses bars; **Fill** deliberately crops with horizontal focus control. Social versions come directly from original source intervals.
 
@@ -92,3 +100,5 @@ Tests generate media and check timing, music, framing, cache recovery, source pr
 Read the [FPV research](docs/research-fpv.md), [music notes](docs/research-music.md), [social guidance](docs/research-social.md), [online-model evaluation](docs/online-training.md), and [UI design brief](docs/ui-design.md).
 
 Git contains code, tests, setup scripts, manifests, and license notices. Footage, music, renders, jobs, diagnostics, environments, downloaded tools, and weights stay local. Upstream models/libraries keep their separate licenses. Ordinary editing requires no account, API key, subscription, or cloud inference.
+
+Local job reports can contain full recording paths, usernames and machine details. Redact them before sharing; use synthetic footage for public examples. See [SECURITY](SECURITY.md), [third-party notices](docs/third-party.md), [CONTRIBUTING](CONTRIBUTING.md) and the [changelog](CHANGELOG.md).

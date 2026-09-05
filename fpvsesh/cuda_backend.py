@@ -45,7 +45,7 @@ def status(gpu, *, ffmpeg=None, ffprobe=None):
         record = json.loads(VALIDATION.read_text(encoding="utf-8"))
         available = (PYTHON.is_file() and record.get("passed") is True and
                      record.get("gpu") == gpu and record.get("signature") == signature(ffmpeg=ffmpeg, ffprobe=ffprobe))
-    except (OSError, ValueError):
+    except (OSError, ValueError, RuntimeError):
         record, available = {}, False
     return {"available": available, "profile": PROFILE,
             "fps": record.get("fps") if available else None,

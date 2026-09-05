@@ -1,0 +1,53 @@
+name: Windows release checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows / Python ${{ matrix.python }}
+    runs-on: windows-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13']
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install Python with Tk
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Install verified core dependencies and development tools
+        run: .\setup.ps1 -PythonPath (Get-Command python).Source -Development
+      - name: Check installation readiness
+        run: .\.venv\Scripts\python.exe -m fpvsesh.doctor --json --output logs/doctor.json
+      - name: Run regression tests
+        run: .\.venv\Scripts\python.exe -m pytest -q --junitxml=logs/tests.xml
+      - name: Exercise a synthetic local edit and social pack
+        run: .\.venv\Scripts\python.exe scripts/release_smoke.py --report logs/release-smoke.json
+      - name: Upload synthetic verification reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-python-${{ matrix.python }}-checks
+          path: |
+            logs/doctor.json
+            logs/tests.xml
+            logs/release-smoke.json
+          if-no-files-found: ignore
+          retention-days: 7
