@@ -1,0 +1,54 @@
+# Local environments and generated Python files.
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Recordings, generated jobs, device diagnostics and local delivery notes.
+/input/
+/music/
+/output/
+/cache/
+/logs/
+/STATUS.md
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.wav
+*.mp3
+*.srt
+
+# Downloaded tools stay local; setup manifests and license notices are source.
+/tools/*
+!/tools/dependencies.json
+!/tools/python-dependencies.json
+!/tools/ai-python-dependencies.json
+!/tools/Real-ESRGAN-LICENSE.txt
+!/tools/Real-ESRGAN-ncnn-LICENSE.txt
+!/tools/Video2X-LICENSE.txt
+!/tools/ai-license-notices/
+
+# Model checkpoints are downloaded and verified by optional setup.
+/models/*
+!/models/real-esrgan-cuda/
+/models/real-esrgan-cuda/*
+!/models/real-esrgan-cuda/manifest.json
+!/models/real-esrgan-cuda/BasicSR-Apache-2.0-LICENSE.txt
+!/models/real-esrgan-cuda/Real-ESRGAN-BSD-3-Clause-LICENSE.txt
+
+# Local credentials, editor files and temporary downloads.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+*.part
+*.partial
+*.tmp

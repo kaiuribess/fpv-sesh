@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "backend": "pytorch-cuda",
+  "adapter": "fpvsesh/ai_models.py",
+  "adapter_version": "fpv-real-esrgan-cuda-v1",
+  "downloaded_utc_date": "2026-09-05",
+  "checkpoint_license": "BSD-3-Clause, Real-ESRGAN upstream",
+  "license_files": [
+    "Real-ESRGAN-BSD-3-Clause-LICENSE.txt",
+    "BasicSR-Apache-2.0-LICENSE.txt"
+  ],
+  "source_files": [
+    {
+      "component": "SRVGGNetCompact",
+      "url": "https://github.com/xinntao/Real-ESRGAN/blob/696e1a6741c912db9d566a162cada43763e57756/realesrgan/archs/srvgg_arch.py",
+      "license": "BSD-3-Clause",
+      "copyright": "2021 Xintao Wang",
+      "modifications": "Removed registry and unused architecture choices; state-dict-compatible 32-convolution general-x4v3 network retained."
+    },
+    {
+      "component": "RRDBNet, RRDB, ResidualDenseBlock",
+      "url": "https://github.com/XPixelGroup/BasicSR/blob/44672b0c6a607fc2a5aaeea70b9f565d1f3f095b/basicsr/archs/rrdbnet_arch.py",
+      "license": "Apache-2.0",
+      "copyright": "2018-2022 BasicSR Authors",
+      "modifications": "Removed training initialization and registry; selected native scale2, 23 blocks; torch pixel_unshuffle replaces BasicSR helper."
+    }
+  ],
+  "models": [
+    {
+      "name": "RealESRGAN_x2plus",
+      "file": "RealESRGAN_x2plus.pth",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth",
+      "size_bytes": 67061725,
+      "sha256": "49fafd45f8fd7aa8d31ab2a22d14d91b536c34494a5cfe31eb5d89c2fa266abb",
+      "published_sha256": null,
+      "native_scale": 2,
+      "architecture": "RRDBNet, 23 blocks, 64 features, 32 growth channels, pixel-unshuffle scale2",
+      "cpu_strict_state_dict_load": "passed",
+      "checkpoint_finite_check": "passed"
+    },
+    {
+      "name": "realesr-general-x4v3",
+      "file": "realesr-general-x4v3.pth",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth",
+      "size_bytes": 4885111,
+      "sha256": "8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292",
+      "published_sha256": null,
+      "native_scale": 4,
+      "architecture": "SRVGGNetCompact, 32 inner convolutions, 64 features, PReLU",
+      "cpu_strict_state_dict_load": "passed",
+      "checkpoint_finite_check": "passed"
+    },
+    {
+      "name": "realesr-general-wdn-x4v3",
+      "file": "realesr-general-wdn-x4v3.pth",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-wdn-x4v3.pth",
+      "size_bytes": 4885111,
+      "sha256": "1641f8c4464b9f097c9fdda5589273713f67cf59f3d909e0bd688f0cee269dca",
+      "published_sha256": null,
+      "native_scale": 4,
+      "role": "Weak-denoise checkpoint for fixed interpolation with general-x4v3",
+      "cpu_strict_state_dict_load": "passed",
+      "checkpoint_finite_check": "passed"
+    }
+  ],
+  "integrity_note": "SHA256 values computed after direct HTTPS download from the official model release assets; no separate publisher digest was available.",
+  "tested_inference": {
+    "gpu": "NVIDIA GeForce RTX 4060 Ti 8GB",
+    "torch": "2.9.1+cu128",
+    "cuda": "12.8",
+    "frame_dimensions": [
+      1440,
+      1080
+    ],
+    "output_picture_dimensions": [
+      2880,
+      2160
+    ],
+    "model_comparison": "logs/quality-model-samples/benchmark.json",
+    "recommended_model": "RealESRGAN_x2plus",
+    "recommended_tile": 768,
+    "recommended_cudnn_benchmark": true,
+    "cudnn_benchmark_limit": 8,
+    "warm_inference_fps_last_two_frames": 1.046763751904909,
+    "sampled_total_gpu_peak_mib_including_warmup": 2681,
+    "warm_peak_pytorch_allocated_bytes": 789575680,
+    "three_real_frames_each_config_completed": true,
+    "report": "logs/quality-revision-backend-research.md"
+  },
+  "precision": "float16",
+  "tile_default": 384,
+  "tile_pad_default": 40,
+  "denoise_default": 0.2,
+  "denoise_formula": "0.2 * general weights + 0.8 * weak-denoise weights, fixed across all frames",
+  "native4_outscale2": "Infer native4 then resize to native2 dimensions using OpenCV Lanczos4, preserving aspect ratio.",
+  "license_artifacts": [
+    {
+      "file": "Real-ESRGAN-BSD-3-Clause-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/master/LICENSE",
+      "sha256": "4a699ec4863d96a91fc265948a0c90033f7e8735d515524dcf3444736406e0c2",
+      "size_bytes": 1519
+    },
+    {
+      "file": "BasicSR-Apache-2.0-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/XPixelGroup/BasicSR/master/LICENSE.txt",
+      "sha256": "5447872f21ddc29dc0dc060d5c885513c01c904e9da9931bba69898a6fb4d415",
+      "size_bytes": 11350
+    }
+  ]
+}

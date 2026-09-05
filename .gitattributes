@@ -1,0 +1,3 @@
+# Preserve exact bytes across checkouts. Setup verifies license-file hashes,
+# and local GPU validation signatures include application source hashes.
+* -text

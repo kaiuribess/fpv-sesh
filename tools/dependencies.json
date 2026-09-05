@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "verified_on_local_date": "2026-09-04",
+  "paths_relative_to": "fpv-sesh project root",
+  "tools": [
+    {
+      "name": "FFmpeg",
+      "version": "7.1.1-full_build-www.gyan.dev",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/7.1.1/ffmpeg-7.1.1-full_build.7z",
+      "source_url": "https://github.com/FFmpeg/FFmpeg/commit/db69d06eeeab4f46da15030a80d539efb4503ca8",
+      "upstream_builder_reference": "https://ffmpeg.org/download.html",
+      "archive": "tools/downloads/ffmpeg-7.1.1-full_build.7z",
+      "format": "7z",
+      "extract_to": "tools/ffmpeg-7.1.1",
+      "executable": "tools/ffmpeg-7.1.1/ffmpeg-7.1.1-full_build/bin/ffmpeg.exe",
+      "probe_executable": "tools/ffmpeg-7.1.1/ffmpeg-7.1.1-full_build/bin/ffprobe.exe",
+      "sha256": "e5bbf665b9a43219d97a15c2dd2cdeb9b11bcb689d88a2177c4f754b4e20f793",
+      "published_sha256": null,
+      "checksum_note": "Local archive hash recorded. Historical GitHub asset has no published digest; archived gyan.dev .sha256 URL returned 404. Download came from the exact FFmpeg-listed builder's official GitHub release.",
+      "license": "GPL-3.0-or-later (this full build)",
+      "license_reference": "https://www.gyan.dev/ffmpeg/builds/#about-these-builds",
+      "required": true,
+      "status": "tested: libplacebo Vulkan and HEVC Main10 NVENC both work on installed NVIDIA driver 581.42"
+    },
+    {
+      "name": "Video2X",
+      "version": "6.4.0",
+      "url": "https://github.com/k4yt3x/video2x/releases/download/6.4.0/video2x-windows-amd64.zip",
+      "source_url": "https://github.com/k4yt3x/video2x/tree/6.4.0",
+      "archive": "tools/downloads/video2x-6.4.0.zip",
+      "format": "zip",
+      "extract_to": "tools/video2x-6.4.0",
+      "executable": "tools/video2x-6.4.0/video2x.exe",
+      "sha256": "0337b6dcae2bad2fd13e43fbdb73ef728d2f6289f37cc3617e87ac3a1a5cf793",
+      "published_sha256": null,
+      "checksum_note": "Local SHA256 recorded. Official release asset API has no digest and release supplies no checksum file.",
+      "license": "AGPL-3.0-or-later",
+      "license_reference": "https://github.com/k4yt3x/video2x/blob/6.4.0/LICENSE",
+      "required": false,
+      "status": "installed for benchmark evidence; disabled for normal rendering after two native Windows shutdown access violations"
+    }
+  ],
+  "models": [
+    {
+      "name": "Real-ESRGAN realistic x4plus",
+      "runtime_model_name": "realesrgan-plus",
+      "version": "bundled with Video2X 6.4.0",
+      "native_scale": 4,
+      "native_2x": false,
+      "temporal": false,
+      "inference_runtime": "ncnn Vulkan via Video2X",
+      "source_url": "https://github.com/xinntao/Real-ESRGAN",
+      "distribution_tool": "Video2X",
+      "license": "BSD-3-Clause (Real-ESRGAN project); MIT for ncnn adapter; AGPL-3.0-or-later for Video2X host",
+      "license_reference": "https://github.com/xinntao/Real-ESRGAN/blob/master/LICENSE",
+      "files": [
+        {
+          "path": "tools/video2x-6.4.0/models/realesrgan/realesrgan-plus-x4.bin",
+          "sha256": "713ee713b0353afaa27976f0563a64a5043bd70b9bd8936c2e26e25ebcdbcddf"
+        },
+        {
+          "path": "tools/video2x-6.4.0/models/realesrgan/realesrgan-plus-x4.param",
+          "sha256": "c8a066c12541a1ef01ba90fddd90688278bdc11536847699239be29225015bc8"
+        }
+      ],
+      "checksum_note": "Local hashes of official Video2X bundled weights; no independently published per-model checksum available in that release.",
+      "status": "GPU inference demonstrated on 60 actual frames; 0.156 fps native4x, but host teardown crashes make normal AI rendering disabled"
+    }
+  ],
+  "rejected_candidates": [
+    {
+      "name": "FFmpeg N-126404-g818e5d965b-20260904 BtbN master",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip",
+      "sha256": "43b4a0fb48525fe889ba31ff58d313143e206a47e07e7f899689f0ea9137f277",
+      "published_sha256": "43b4a0fb48525fe889ba31ff58d313143e206a47e07e7f899689f0ea9137f277",
+      "checksum_matched": true,
+      "reason": "Encoder requires NVENC API13.1 and NVIDIA driver610; this system's driver581.42 supports API13.0. Replaced with tested older binary; no driver changes."
+    },
+    {
+      "name": "FlashVSR (only temporal backend evaluated)",
+      "source_url": "https://github.com/OpenImagingLab/FlashVSR",
+      "license": "Apache-2.0",
+      "required_attention_source": "https://github.com/mit-han-lab/Block-Sparse-Attention",
+      "reason": "Official required Block-Sparse-Attention documents Linux. FlashVSR upstream states RTX40/50 compatibility unknown and primarily recommends4x; no independently verified native-Windows8GB integration established. Not installed, no model downloads, no WSL changes.",
+      "status": "disabled; compatibility evaluation only"
+    }
+  ]
+}
