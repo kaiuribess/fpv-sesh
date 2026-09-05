@@ -5,7 +5,7 @@ DEFAULTS = {"duration": "auto", "style": "hype", "look": "natural", "strength": 
             "quality": "auto", "audio_level": .4, "codec": "hevc", "music": None,
             "music_level": .75, "music_offset": 0.0, "music_fade": 1.5, "music_end": "fade",
             "beat_sync": True, "social_formats": [], "framing": "blur", "focus_x": .5,
-            "edit_order": "story", "recovery": 2.5}
+            "edit_order": "story", "recovery": 2.5, "recognition": "auto"}
 
 
 def resolve_settings(args, saved):
@@ -23,7 +23,8 @@ def resolve_settings(args, saved):
                "style": ["hype", "cinematic", "freestyle", "flow"],
                "look": ["natural", "punch", "cinematic"], "quality": ["auto", "lanczos", "ai"],
                "codec": ["hevc", "h264"], "music_end": ["fade", "loop"],
-               "framing": ["blur", "fit", "fill"], "edit_order": ["story", "chronological"]}
+               "framing": ["blur", "fit", "fill"], "edit_order": ["story", "chronological"],
+               "recognition": ["auto", "off", "thorough"]}
     for key, allowed in choices.items():
         if settings[key] not in allowed:
             raise ValueError(f"Invalid saved {key}: choose {', '.join(allowed)}")

@@ -328,13 +328,17 @@ def _motion_event(rows, start, end):
     return "uncertain motion", .25, "Weak or mixed image-motion evidence"
 
 
-def build_flight_map(analyses, labels, cache, event=lambda *args: None, checkpoint=lambda: None):
+def build_flight_map(analyses, labels, cache, event=lambda *args: None, checkpoint=lambda: None, recognition="off"):
     """Build JSON map, attach cached scene samples, and update confirmed examples."""
     checkpoint()
     online = _scene_samples(analyses, cache, event, checkpoint)
+    from .video_understanding import recognize
+    video = recognize(analyses, cache, event, checkpoint, mode=recognition)
     learning_dir = Path(cache) / "learning"
     examples, current, warnings = _dataset(analyses, labels or [], learning_dir)
     learning = _learning_status(examples, online)
+    learning["video_model"] = video
+    learning["message"] = video["message"] + " " + online["message"] + " Local confirmations are optional."
     learning["warnings"] = warnings
     if warnings:
         learning["message"] += " " + " ".join(warnings)
@@ -362,9 +366,10 @@ def build_flight_map(analyses, labels, cache, event=lambda *args: None, checkpoi
                 events[-1]["reason"] = "Explicit user-confirmed interval; not inferred by the scene model"
         sources.append({"source": analysis["source"], "identity": analysis["identity"], "duration": analysis["duration"],
                         "events": sorted(events, key=lambda row: (row["start"], row["method"])),
-                        "scene_samples": analysis.get("scene_samples", [])})
+                        "scene_samples": analysis.get("scene_samples", []),
+                        "video_events": analysis.get("video_events", [])})
     result = {"version": VERSION, "sources": sources, "learning": learning,
-              "limitations": "Image-motion map, not a geographic route or calibrated named-trick classifier. Scene scores describe sampled surroundings; rapid passes between samples may be missed."}
+              "limitations": "Temporal video observations, not a geographic route or calibrated trick classifier. Online-pretrained video suggestions can be wrong; ordinary flight and uncertain are valid outcomes. Rapid motion between sampled frames may be missed. Local examples are optional."}
     _save(learning_dir / "latest-flight-map.json", result)
     return result
 
@@ -379,6 +384,10 @@ def annotate_candidates(candidates, analyses, learning_dir):
     examples = _load_examples(Path(learning_dir) / "confirmed-examples.json")
     eligible = _eligible(examples)
     for candidate in candidates:
+        for key in list(candidate):
+            if key.startswith("trick_"):
+                candidate.pop(key)
+        candidate.pop("scene_context", None)
         analysis = source_map.get(candidate.get("source"))
         if analysis is None:
             continue
@@ -395,6 +404,18 @@ def annotate_candidates(candidates, analyses, learning_dir):
             label, confidence, method = prediction["label"], prediction["confidence"], prediction["method"]
         candidate.update({"flight_label": label, "flight_confidence": confidence, "flight_method": method,
                           "flight_reason": reason})
+        from .video_understanding import candidate_observation
+        observed = candidate_observation(candidate, analysis)
+        if exact:
+            candidate.update({"trick_label": exact["label"], "trick_status": "confirmed",
+                              "trick_evidence": "Explicit user-confirmed source interval", "trick_method": "user-confirmed"})
+        elif observed:
+            candidate.update({"trick_label": observed["label"], "trick_status": observed["status"],
+                              "trick_evidence": observed["evidence"],
+                              "trick_method": observed.get("method", "video-section estimate")})
+            for key in ("model", "raw_label", "checks"):
+                if key in observed:
+                    candidate["trick_" + key] = list(observed[key]) if key == "checks" else observed[key]
         scene = _scene_interval(analysis.get("scene_samples", []), start, end)
         if scene:
             candidate["scene_context"] = {**scene, "method": "online-pretrained Places365 scene estimate"}

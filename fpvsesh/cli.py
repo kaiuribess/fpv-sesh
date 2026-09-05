@@ -44,6 +44,7 @@ def parser():
     m.add_argument("--focus-x", type=float)
     m.add_argument("--edit-order", choices=["story", "chronological"])
     m.add_argument("--recovery", type=float, help="Seconds of follow-through after motion bursts (0.5–8)")
+    m.add_argument("--recognition", choices=["auto", "off", "thorough"], help="Local online-pretrained video understanding")
     m.add_argument("--overrides")
     m.add_argument("--preview-only", action="store_true")
     m.add_argument("--regenerate", action="store_true")
@@ -53,6 +54,9 @@ def parser():
     validation.add_argument("--input", required=True)
     validation.add_argument("--start", type=float, default=0)
     validation.add_argument("--seconds", type=float, default=2)
+    review = sub.add_parser("map-flight", help="Refresh an existing flight map without changing or rendering its edit")
+    review.add_argument("--job", required=True)
+    review.add_argument("--recognition", choices=["auto", "off", "thorough"], default="auto")
     return p
 
 
@@ -202,7 +206,7 @@ def make(args):
         from .flightmap import build_flight_map, annotate_candidates
         labels_path = job / "flight-labels.json"
         labels = json.loads(labels_path.read_text(encoding="utf-8")) if labels_path.exists() else []
-        flight_map = build_flight_map(analyses, labels, ROOT / "cache", event, checkpoint)
+        flight_map = build_flight_map(analyses, labels, ROOT / "cache", event, checkpoint, recognition=settings["recognition"])
         save_json(job / "flight-map.json", flight_map)
         review_path = job / "reviewed-intervals.json"
         reviews = json.loads(review_path.read_text(encoding="utf-8")) if review_path.exists() else []
@@ -328,6 +332,9 @@ def main():
         from .ai_validation import validate_ai
         result = validate_ai(args.input, args.start, args.seconds, lambda message: print(json.dumps({"stage": "ai-validation", "message": message}), flush=True))
         print(json.dumps(result, indent=2))
+    elif args.command == "map-flight":
+        from .video_review import map_flight
+        map_flight(args.job, args.recognition)
     else: make(args)
 
 if __name__ == "__main__":

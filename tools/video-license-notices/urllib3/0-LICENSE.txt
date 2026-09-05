@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 FPV Sesh contributors
+Copyright (c) 2008-2020 Andrey Petrov and contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Third-party tools, libraries, and weights keep their own licenses, recorded in
-tools/dependencies.json, tools/python-dependencies.json,
-tools/ai-python-dependencies.json, and tools/video-python-dependencies.json. This license
-covers FPV Sesh's own Python application, documentation, and launch scripts.
-Adapted model architectures and pretrained weights retain the separate notices
-and attribution under models/real-esrgan-cuda, models/places365, and models/qwen3-vl-2b; this MIT
-license does not replace those upstream licenses.

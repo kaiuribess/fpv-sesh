@@ -11,6 +11,7 @@ A local Windows FPV editing studio. Import a flying session, review complete mom
 - Local music files, independent sound levels, track offset, fades, optional looping, and conservative beat timing.
 - A 3840×2160 master plus optional vertical 1080×1920, square 1080×1080, and portrait 1080×1350 versions.
 - A temporal flight map with motion estimates, optional internet-pretrained scene understanding, and user-confirmed labels.
+- Optional online-pretrained video understanding, ordinary-flight and uncertain outcomes, and analysis-only refresh of saved sessions.
 - Previews, verified outputs, pause/cancel, saved jobs, reusable segments, posters, and CSV edit decisions.
 
 ## Install and open
@@ -43,6 +44,20 @@ Run **setup-ai.ps1** for the shared optional Torch runtime, then **setup-vision.
 
 **Scene recognition is not a trained freestyle-trick detector.** It cannot prove a powerloop, double flip, crash, or geographic 3D route. Temporal motion adds evidence; user-confirmed labels remain distinct. Local matching needs multiple confirmed examples from different source identities and reports an independent-flight check. Replaced source files cannot inherit old confirmations. The app does not scrape or retrain on every online FPV video. See [online-model research](docs/online-training.md) for the actual evaluation, provenance, and attribution.
 
+## Video understanding from internet training
+
+Run **setup-video.ps1** after **setup-ai.ps1** to install the official Qwen3-VL-2B-Instruct checkpoint (about 4.3 GB) and pinned supporting packages. The existing AI packages retain their versions. Inference runs locally; no account, API key, footage upload, or personal training examples are required.
+
+Choose **Automatic**, **Off**, or **Thorough** under Session. Automatic reviews overlapping eight-second video windows with up to eight sampled frames per second. Thorough uses overlapping six-second windows with up to sixteen sampled frames per second and a larger image budget. Both preserve the original aspect ratio. Recognition can take longer than the recording itself on an 8 GB GPU; completed observations are cached and pause/cancel remain available.
+
+Use **Flight map → Refresh understanding** to update an existing session's observations without rendering again. It verifies every original file and preserves cut timing, music and exported videos. Filters separate ordinary flight, possible acrobatics and uncertain observations. Model observations can be wrong; they never become automatic proof of a complete trick or a reason to trim its recovery.
+
+Select an event and choose **Watch section** to open that source interval with two seconds of surrounding footage where available. Playback uses the bundled local player, requires no new render, and can run while recognition continues. Double-click an event for its evidence, uncertainty checks, and method.
+
+This combines knowledge already learned by a general internet-pretrained video model with FPV definitions from published tutorials. It does not claim new training on all online drone videos or benchmarked accuracy for every freestyle trick. [Research and provenance](docs/research-tricks.md) describe the actual model, alternatives, and limitations. Places365 remains a separate surroundings classifier. User confirmations are optional and remain distinct from predictions.
+
+A separate 30-frame-per-second feature tracker checks continuous image rotation and can suggest a possible roll when the video model misses it. It rejects weak or interrupted tracking and distinguishes the measured evidence from the model's interpretation. Image rotation alone cannot establish the drone's physical attitude or prove a safe airborne recovery.
+
 ## Picture quality
 
 The landscape master remains 4K. Conventional scaling, high-quality encoding, and restrained color are defaults. A 1440×1080 recording becomes a 2880×2160 picture inside the 4K canvas; output dimensions cannot create native camera detail. HEVC Main10 is the default master format; H.264 is also available. Social files use H.264/AAC.
@@ -66,6 +81,7 @@ Use the Python executable under .venv/Scripts from this folder:
 - `python -m fpvsesh.cli make --folder input --music "C:\path\to\track.mp3" --social-formats vertical,square,portrait --framing blur --preview-only`
 - `python -m fpvsesh.cli make --job output/YOUR-JOB` resumes saved settings and reviewed order.
 - `python -m fpvsesh.cli make --job output/YOUR-JOB --no-music --preview-only` removes saved music.
+- `python -m fpvsesh.cli map-flight --job output/YOUR-JOB --recognition auto` refreshes understanding without rendering.
 - `python -m fpvsesh.cli make --help` lists all options.
 - `python -m pytest -q` runs regression tests.
 

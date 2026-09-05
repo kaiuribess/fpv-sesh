@@ -7,6 +7,7 @@ import math
 import os
 from pathlib import Path
 import queue
+import re
 import subprocess
 import sys
 import threading
@@ -23,6 +24,8 @@ MUSIC_TYPES = [("Music and audio", "*.mp3 *.wav *.m4a *.aac *.flac *.ogg"), ("Al
 STYLES = {"Energetic highlights": "hype", "Cinematic": "cinematic", "Freestyle tricks": "freestyle", "Continuous flight": "flow"}
 LOOKS = {"FPV Punch": "punch", "Natural": "natural", "Cinematic": "cinematic"}
 QUALITIES = {"Auto": "auto", "Clean upscale": "lanczos", "AI detail (slower)": "ai"}
+RECOGNITION_MODES = {"Automatic": "auto", "Off": "off", "Thorough": "thorough"}
+FLIGHT_FILTERS = ("All motion", "Possible tricks", "Ordinary flight", "Uncertain")
 DURATIONS = {"Auto": "auto", **{f"{n} seconds": str(n) for n in (15, 30, 60, 90, 120, 180)}}
 FINISH_MODES = ("Render final automatically", "Stop at preview", "Wait for final approval")
 EDIT_ORDERS = {"Story flow": "story", "Recording order": "chronological"}
@@ -81,6 +84,7 @@ class SeshApp(tk.Tk):
         self._hero_key = None
         self._hero_source = None
         self._flight_data = {}
+        self._flight_rows = []
         self._thumb_slots = threading.Semaphore(2)
         self.events: queue.Queue = queue.Queue()
         self.process: subprocess.Popen | None = None
@@ -95,6 +99,8 @@ class SeshApp(tk.Tk):
         self.closing = False
         self.overrides_dirty = False
         self.settings_dirty = False
+        self.recognition_dirty = False
+        self.mapping_only = False
         self._restoring_settings = False
         self.music_path: Path | None = None
         self._playback_paths: dict[str, Path] = {}
@@ -295,6 +301,7 @@ class SeshApp(tk.Tk):
         self.audio_value = tk.DoubleVar(value=.4)
         self.order_value = tk.StringVar(value="Story flow")
         self.recovery_value = tk.StringVar(value="2.5")
+        self.recognition_value = tk.StringVar(value="Automatic")
         presets = ttk.Frame(options)
         presets.grid(row=1, column=0, columnspan=4, sticky="ew", pady=(0, 10))
         presets.columnconfigure((0, 1), weight=1, uniform="presets")
@@ -324,10 +331,16 @@ class SeshApp(tk.Tk):
         self.settings_widgets.append((recovery, "normal"))
         ttk.Label(options, text="Seconds of continued flight after estimated tricks.", style="Muted.TLabel",
                   wraplength=330).grid(row=10, column=0, columnspan=4, sticky="w", pady=(3, 9))
+        self.recognition_combo = self._combo(options, 11, 0, "Flight recognition", self.recognition_value,
+                                             list(RECOGNITION_MODES), width=15)
+        self.recognition_note = ttk.Label(options, text="Runs locally using an internet-trained model. Trick labels are estimates.",
+                                           style="Muted.TLabel", wraplength=330)
+        self.recognition_note.grid(row=12, column=0, columnspan=4, sticky="w", pady=(3, 9))
         self.quality_note = tk.StringVar(value="Auto uses tested GPU scaling with a Lanczos fallback.")
         self.quality_note_label = ttk.Label(options, textvariable=self.quality_note, style="Muted.TLabel", wraplength=330)
-        self.quality_note_label.grid(row=11, column=0, columnspan=4, sticky="w")
-        options.bind("<Configure>", lambda event: self.quality_note_label.configure(wraplength=max(200, event.width - 30)))
+        self.quality_note_label.grid(row=13, column=0, columnspan=4, sticky="w")
+        options.bind("<Configure>", lambda event: [label.configure(wraplength=max(200, event.width - 30))
+                                                    for label in (self.quality_note_label, self.recognition_note)])
 
         self.music_text = tk.StringVar(value="No music selected — source sound only.")
         track = ttk.LabelFrame(music, text="Choose a music file", padding=12)
@@ -362,7 +375,7 @@ class SeshApp(tk.Tk):
             spin.grid(row=0, column=index * 2 + 1, sticky="w")
             self.settings_widgets.append((spin, "normal"))
         self._combo(mix, 3, 0, "If music is shorter", self.music_end_value, list(MUSIC_ENDS), width=34)
-        beat = ttk.Checkbutton(mix, text="Favor music beats (keeps complete tricks)", variable=self.beat_value)
+        beat = ttk.Checkbutton(mix, text="Favor music beats (respects recovery)", variable=self.beat_value)
         beat.grid(row=4, column=0, columnspan=4, sticky="w", pady=(8, 0))
         self.settings_widgets.append((beat, "normal"))
         ttk.Label(mix, text="Beat timing is used only where safe; it will not force every cut onto a beat.",
@@ -410,7 +423,7 @@ class SeshApp(tk.Tk):
         self.settings_widgets.append((label_combo, "readonly"))
         self.teach_button = ttk.Button(teaching, text="Teach this moment", command=self._teach_moment, state="disabled")
         self.teach_button.pack(side="left", padx=8)
-        ttk.Label(teaching, text="Your labels become local examples after regeneration.", style="Muted.TLabel").pack(side="left")
+        ttk.Label(teaching, text="Optional: confirm or correct a moment.", style="Muted.TLabel").pack(side="left")
         review_actions = ttk.Frame(review)
         review_actions.pack(side="bottom", fill="x", pady=(8, 0))
         self.keep_button = ttk.Button(review_actions, text="Keep", command=lambda: self._set_choice("keep"), state="disabled")
@@ -432,7 +445,7 @@ class SeshApp(tk.Tk):
         columns = ("choice", "source", "start", "end", "score", "reason")
         self.table = ttk.Treeview(table_frame, columns=columns, show="headings", selectmode="extended", height=7)
         for col, title, width in (("choice", "Choice", 75), ("source", "Source recording", 130), ("start", "In", 70),
-                                  ("end", "Out", 70), ("score", "Score", 55), ("reason", "Reason / estimated signals", 460)):
+                                  ("end", "Out", 70), ("score", "Rank", 55), ("reason", "What happened / why selected", 460)):
             self.table.heading(col, text=title)
             self.table.column(col, width=width, minwidth=45, stretch=False)
         scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.table.yview)
@@ -453,18 +466,30 @@ class SeshApp(tk.Tk):
         self.log_box.pack(fill="both", expand=True)
 
         flight = self._new_page("Flight map", position=4, scroll=False)
-        self.learning_text = tk.StringVar(value="Pretrained scene context and estimated flight events appear after analysis.")
+        self.learning_text = tk.StringVar(value="Online-trained video recognition and estimated flight events appear after analysis. Local examples are optional.")
         learning_label = ttk.Label(flight, textvariable=self.learning_text, style="OutsideMuted.TLabel", wraplength=960)
         learning_label.pack(anchor="w", pady=(0, 10))
         flight.bind("<Configure>", lambda event: learning_label.configure(wraplength=max(400, event.width - 12)))
+        filters = ttk.Frame(flight, style="Workspace.TFrame")
+        filters.pack(fill="x", pady=(0, 10))
+        ttk.Label(filters, text="Show", style="OutsideMuted.TLabel").pack(side="left", padx=(0, 9))
+        self.flight_filter_value = tk.StringVar(value="All motion")
+        self.flight_filter_combo = ttk.Combobox(filters, textvariable=self.flight_filter_value,
+                                                values=FLIGHT_FILTERS, state="readonly", width=22)
+        self.flight_filter_combo.pack(side="left")
+        self.map_button = ttk.Button(filters, text="Refresh understanding", command=self._refresh_understanding, state="disabled")
+        self.map_button.pack(side="right")
+        self.watch_section_button = ttk.Button(filters, text="Watch section", command=self._watch_flight_section, state="disabled")
+        self.watch_section_button.pack(side="right", padx=(0, 8))
+        self.flight_filter_value.trace_add("write", lambda *_: self._paint_flight_rows())
         self.flight_canvas = tk.Canvas(flight, height=166, background=SURFACE, highlightthickness=0)
         self.flight_canvas.pack(fill="x", pady=(0, 12))
         self.flight_canvas.bind("<Configure>", lambda _: self._paint_flight_timeline())
         flight_columns = ("source", "start", "end", "label", "confidence", "evidence")
         self.flight_table = ttk.Treeview(flight, columns=flight_columns, show="headings", height=8)
         for key, heading, width in (("source", "Recording", 140), ("start", "In", 70), ("end", "Out", 70),
-                                    ("label", "Estimated event / taught label", 185), ("confidence", "Confidence", 90),
-                                    ("evidence", "Method and evidence", 440)):
+                                    ("label", "What happened", 185), ("confidence", "Evidence", 90),
+                                    ("evidence", "Why / method", 440)):
             self.flight_table.heading(key, text=heading)
             self.flight_table.column(key, width=width, minwidth=50, stretch=False)
         flight_scroll = ttk.Scrollbar(flight, orient="vertical", command=self.flight_table.yview)
@@ -473,6 +498,7 @@ class SeshApp(tk.Tk):
         self.flight_table.pack(side="left", fill="both", expand=True)
         self.flight_table.bind("<Configure>", lambda event: self.flight_table.column("evidence", width=max(150, event.width - 557)))
         self.flight_table.bind("<Double-1>", self._show_flight_event)
+        self.flight_table.bind("<<TreeviewSelect>>", lambda _: self._refresh_watch_section())
 
         variables = [self.style_value, self.duration_value, self.look_value, self.quality_value, self.codec_value,
                      self.strength_value, self.audio_value, self.order_value, self.recovery_value,
@@ -480,6 +506,7 @@ class SeshApp(tk.Tk):
                      self.beat_value, self.framing_value, self.focus_value, *self.social_values.values()]
         for variable in variables:
             variable.trace_add("write", self._settings_changed)
+        self.recognition_value.trace_add("write", self._recognition_changed)
         self._build_navigation()
         self._polish_cards(self.notebook)
         self.bind("<Configure>", self._on_window_resize, add="+")
@@ -554,7 +581,7 @@ class SeshApp(tk.Tk):
             "Music & sound": "Set the soundtrack, mix and timing.",
             "Social exports": "Keep the whole flight in view, in every format.",
             "Review moments": "Keep complete tricks. Give each line room to finish.",
-            "Flight map": "Explore real events along each recording.",
+            "Flight map": "Explore suggested tricks and flight lines along each recording.",
             "Progress & warnings": "Rendering progress, hardware and diagnostic details.",
         }
         for tab, (tile, label, number) in self._nav_items.items():
@@ -823,6 +850,14 @@ class SeshApp(tk.Tk):
         self._refresh_dependent_controls()
         self._refresh_outputs()
 
+    def _recognition_changed(self, *_):
+        if self._restoring_settings:
+            return
+        if self.job_dir:
+            self.recognition_dirty = True
+            self.review_text.set("Recognition changed. Use Refresh understanding on the Flight map to update estimates without rendering.")
+        self._refresh_outputs()
+
     def _refresh_dependent_controls(self):
         self._sync_presets()
         if hasattr(self, "focus_scale"):
@@ -861,6 +896,7 @@ class SeshApp(tk.Tk):
             "--quality", QUALITIES[self.quality_value.get()], "--audio-level", f"{self._number(self.audio_value, 'Source volume', 0, 1):.4f}",
             "--codec", "hevc" if self.codec_value.get() == "HEVC" else "h264",
             "--edit-order", EDIT_ORDERS[self.order_value.get()],
+            "--recognition", RECOGNITION_MODES[self.recognition_value.get()],
             "--recovery", f"{self._number(self.recovery_value, 'Recovery time', .5, 8):g}",
             "--music-level", f"{self._number(self.music_level_value, 'Music volume', 0, 1):.4f}",
             "--music-offset", f"{self._number(self.music_offset_value, 'Music start', 0, 86400):g}",
@@ -914,6 +950,7 @@ class SeshApp(tk.Tk):
         self.override_choices = {"keep": [], "exclude": []}
         self.overrides_dirty = False
         self.settings_dirty = False
+        self.recognition_dirty = False
         self._paint_candidates()
         self.last_args = args
         self._launch(self.last_args)
@@ -922,12 +959,14 @@ class SeshApp(tk.Tk):
         if self.process and self.process.poll() is None:
             return
         self.paused = False
+        self.mapping_only = bool(args and args[0] == "map-flight")
         self.run_preview_only = "--preview-only" in args
         self.terminal_stage = ""
         self.pause_button.configure(text="Pause")
         self.progress["value"] = 0
-        self.stage_text.set("Starting the local renderer…")
-        self.detail_text.set("Preparing this job. Original footage stays untouched.")
+        self.stage_text.set("Refreshing flight understanding…" if self.mapping_only else "Starting the local renderer…")
+        self.detail_text.set("Analyzing the saved recordings. Your finished edit stays unchanged." if self.mapping_only
+                             else "Preparing this job. Original footage stays untouched.")
         executable = self.app_dir / ".venv" / "Scripts" / "python.exe"
         if not executable.is_file():
             executable = Path(sys.executable)
@@ -941,12 +980,12 @@ class SeshApp(tk.Tk):
                                             env=environment, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         except OSError as exc:
             self.process = None
-            self.stage_text.set("The renderer could not start.")
+            self.stage_text.set("Flight analysis could not start." if self.mapping_only else "The renderer could not start.")
             self._log(str(exc))
             messagebox.showerror("Could not start FPV Sesh", str(exc), parent=self)
             return
         self._set_busy(True)
-        self._log("Started a local render job.")
+        self._log("Started flight analysis without rendering." if self.mapping_only else "Started a local render job.")
         threading.Thread(target=self._read_process, args=(self.process,), daemon=True).start()
 
     def _read_process(self, process):
@@ -975,12 +1014,29 @@ class SeshApp(tk.Tk):
                     self.process = None
                     self._set_busy(False)
                     self._load_candidates(force=True)
-                    self._load_job_poster()
+                    self._load_flight_map(force=True)
+                    if not self.mapping_only:
+                        self._load_job_poster()
                     self._refresh_outputs()
-                    if self.terminal_stage == "cancelled":
+                    if self.mapping_only:
+                        if self.terminal_stage == "cancelled":
+                            self.stage_text.set("Flight analysis cancelled safely. Refresh understanding to continue; your finished edit is unchanged.")
+                        elif payload == 0 and self.terminal_stage == "partial":
+                            self.progress["value"] = 100
+                            self.recognition_dirty = False
+                            self.stage_text.set("Flight understanding partly updated. Completed observations are available.")
+                            self.detail_text.set("Refresh understanding to continue. Your finished edit is unchanged.")
+                        elif payload == 0 and self.terminal_stage != "error":
+                            self.progress["value"] = 100
+                            self.recognition_dirty = False
+                            self.stage_text.set("Flight understanding updated. Your finished edit is unchanged.")
+                        else:
+                            self.stage_text.set("Flight analysis stopped. Your finished edit is unchanged; check the messages before trying again.")
+                    elif self.terminal_stage == "cancelled":
                         self.stage_text.set("Cancelled safely — completed work is kept. Resume the saved job when ready.")
                     elif payload == 0:
                         self.progress["value"] = 100
+                        self.recognition_dirty = False
                         if not self.run_preview_only and self.job_dir and (self.job_dir / "final_4k.mp4").is_file():
                             self.stage_text.set("Your session edit is ready — final 4K video and preview are saved.")
                         elif self.job_dir and (self.job_dir / "preview.mp4").is_file():
@@ -989,7 +1045,7 @@ class SeshApp(tk.Tk):
                             self.stage_text.set("Job finished. Check the run report and messages for its result.")
                     else:
                         self.stage_text.set("Job stopped — completed work is kept. Read the messages or resume the saved job.")
-                    self._log(f"Renderer exited with code {payload}.")
+                    self._log(f"{'Flight analysis' if self.mapping_only else 'Renderer'} exited with code {payload}.")
                     if self.closing:
                         self.destroy()
                         return
@@ -1008,7 +1064,7 @@ class SeshApp(tk.Tk):
             path = Path(job)
             self.job_dir = path if path.is_absolute() else self.app_dir / path
         stage = str(payload.get("stage", ""))
-        if stage in ("complete", "cancelled", "error"):
+        if stage in ("complete", "partial", "cancelled", "error"):
             self.terminal_stage = stage
         message = str(payload.get("message", ""))
         if stage:
@@ -1095,6 +1151,7 @@ class SeshApp(tk.Tk):
                     ("style", self.style_value, STYLES, "hype"),
                     ("look", self.look_value, LOOKS, "natural"),
                     ("quality", self.quality_value, QUALITIES, "auto"),
+                    ("recognition", self.recognition_value, RECOGNITION_MODES, "auto"),
                     ("edit_order", self.order_value, EDIT_ORDERS, "story"),
                     ("music_end", self.music_end_value, MUSIC_ENDS, "fade"),
                     ("framing", self.framing_value, FRAMINGS, "blur")):
@@ -1128,6 +1185,7 @@ class SeshApp(tk.Tk):
             self.finish_value.set(FINISH_MODES[0])
             self.overrides_dirty = False
             self.settings_dirty = False
+            self.recognition_dirty = False
         finally:
             self._restoring_settings = False
         self._refresh_dependent_controls()
@@ -1166,6 +1224,15 @@ class SeshApp(tk.Tk):
         self.last_args = args.copy()
         self._launch(args)
 
+    def _refresh_understanding(self):
+        if not self.job_dir or self.process is not None:
+            return
+        mode = RECOGNITION_MODES.get(self.recognition_value.get())
+        if mode is None:
+            messagebox.showinfo("Choose recognition", "Choose Automatic, Off, or Thorough before refreshing understanding.", parent=self)
+            return
+        self._launch(["map-flight", "--job", str(self.job_dir), "--recognition", mode])
+
     def _regenerate(self):
         if not self.job_dir:
             return
@@ -1195,6 +1262,8 @@ class SeshApp(tk.Tk):
         if not isinstance(candidates, list):
             self._log_warning("This candidate manifest has an unsupported format.")
             return
+        selected_ids = {str(self.candidates[int(index)]["id"]) for index in self.table.selection()
+                        if index.isdigit() and int(index) < len(self.candidates)}
         self.candidates = [item for item in candidates if isinstance(item, dict) and item.get("id") is not None]
         timeline = read_json(self.job_dir / "timeline.json", {})
         ordered = {str(shot.get("id")): index for index, shot in enumerate(timeline.get("shots", []))} if isinstance(timeline, dict) else {}
@@ -1206,14 +1275,15 @@ class SeshApp(tk.Tk):
             rendered_overrides = read_json(self.job_dir / "overrides.json", {})
         rendered_overrides = rendered_overrides if isinstance(rendered_overrides, dict) else {}
         try:
-            pending_ui = ui_path.stat().st_mtime_ns > mtime
+            pending_ui = self.overrides_dirty or ui_path.stat().st_mtime_ns > mtime
         except OSError:
-            pending_ui = False
+            pending_ui = self.overrides_dirty
         overrides = read_json(ui_path, rendered_overrides) if pending_ui else rendered_overrides
         overrides = overrides if isinstance(overrides, dict) else rendered_overrides
         self.override_choices = {key: [str(value) for value in overrides.get(key, [])] for key in ("keep", "exclude")}
         self.overrides_dirty = any(set(self.override_choices[key]) != set(str(value) for value in rendered_overrides.get(key, [])) for key in ("keep", "exclude"))
         self._paint_candidates()
+        self.table.selection_set([str(index) for index, item in enumerate(self.candidates) if str(item["id"]) in selected_ids])
         self.review_text.set(f"{len(self.candidates)} candidates; selected shots appear first. Scores are estimates. Double-click for exact source details.")
 
     def _paint_candidates(self):
@@ -1225,6 +1295,9 @@ class SeshApp(tk.Tk):
             reason = item.get("reason", item.get("reasons", ""))
             if isinstance(reason, list):
                 reason = "; ".join(str(value) for value in reason)
+            if item.get("trick_label") or item.get("flight_label"):
+                label, evidence_state, evidence = self._event_summary(item)
+                reason = f"{label} · {evidence_state}" + (f" — {evidence}" if evidence else "")
             score = item.get("score", "")
             if isinstance(score, (int, float)):
                 score = f"{score:.2f}"
@@ -1236,7 +1309,10 @@ class SeshApp(tk.Tk):
         if not selected:
             return
         item = self.candidates[int(selected[0])]
-        messagebox.showinfo("Source moment", json.dumps(item, indent=2, ensure_ascii=False), parent=self)
+        label, state, evidence = self._event_summary(item)
+        body = (f"{Path(item.get('source', '')).name} · {timestamp(item.get('start'))}–{timestamp(item.get('end'))}\n\n"
+                f"{label} · {state}\n\n{evidence}")
+        messagebox.showinfo("Source moment", body, parent=self)
 
     def _open_selected_source(self):
         selected = self.table.selection()
@@ -1384,7 +1460,7 @@ class SeshApp(tk.Tk):
         write_json(path, labels)
         write_json(review_path, reviews)
         self.settings_dirty = True
-        self.review_text.set(f"Saved {len(selected)} example(s) as {label}. Regenerate to update local learning and the flight map.")
+        self.review_text.set(f"Saved {len(selected)} optional example(s) as {label}. Use Refresh understanding on the Flight map to update recognition.")
         self._refresh_outputs()
 
     def _load_flight_map(self, force=False):
@@ -1397,8 +1473,10 @@ class SeshApp(tk.Tk):
             if force:
                 self.flight_table.delete(*self.flight_table.get_children())
                 self._flight_data = {}
+                self._flight_rows = []
                 self._paint_flight_timeline()
-                self.learning_text.set("This job has no flight map yet. Regenerate to add pretrained scene context and estimated flight events.")
+                self._refresh_watch_section()
+                self.learning_text.set("This job has no flight map yet. Use Refresh understanding to add video estimates. Local examples are optional.")
             return
         if not force and key == self._flight_mtime:
             return
@@ -1407,26 +1485,127 @@ class SeshApp(tk.Tk):
             return
         self._flight_mtime = key
         self._flight_data = data
-        self.flight_table.delete(*self.flight_table.get_children())
-        for source in data.get("sources", []):
-            for event in source.get("events", []):
-                confidence = event.get("confidence")
-                confidence = f"{confidence:.0%}" if isinstance(confidence, (int, float)) else "Unknown"
-                scene = event.get("scene", {}).get("label") if isinstance(event.get("scene"), dict) else None
-                broad_scenes = {"woodland", "park or open grass", "cultivated field", "sky", "built surroundings", "water"}
-                scene_text = f"scene: {scene}" if scene in broad_scenes else ""
-                evidence = "; ".join([*(str(event[key]) for key in ("method",) if event.get(key)), scene_text,
-                                      str(event.get("reason", ""))]).strip("; ")
-                self.flight_table.insert("", "end", values=(Path(source.get("source", "")).name, timestamp(event.get("start")),
-                    timestamp(event.get("end")), event.get("label", "unknown"), confidence, evidence))
         learning = data.get("learning", {})
+        learning = learning if isinstance(learning, dict) else {}
+        video = learning.get("video_model", {})
+        video = video if isinstance(video, dict) else {}
         online = learning.get("online_model", {})
-        if isinstance(online, dict) and online.get("available"):
-            self.learning_text.set(f"Pretrained scene model ready · {online.get('name', 'scene context')}. "
-                                   f"{learning.get('examples', 0)} optional local examples. Events and trick labels remain estimates.")
+        if video.get("mode") == "off":
+            summary = "Video recognition is off. Motion estimates remain available."
+        elif video.get("available"):
+            mode = next((name for name, value in RECOGNITION_MODES.items() if value == video.get("mode")), "Automatic")
+            coverage = video.get("coverage_seconds")
+            coverage_text = f" · {coverage:.0f}s covered" if isinstance(coverage, (int, float)) and math.isfinite(coverage) else ""
+            summary = (f"Online-trained video · {video.get('name', 'installed model')} · {mode}. "
+                       f"{video.get('windows_analyzed', 0)} windows reviewed{coverage_text}. Trick labels remain estimates.")
+        elif video:
+            summary = "Video recognition is unavailable for this job. " + self._flight_status_message(video.get("message", "Install the video model, then refresh understanding."))
+        elif isinstance(online, dict) and online.get("available"):
+            summary = "Scene context is available. Use Refresh understanding to add video estimates with the installed model."
         else:
-            self.learning_text.set(f"{learning.get('examples', 0)} local examples. {learning.get('message', 'Pretrained scene context is not available for this job yet.')}")
+            summary = self._flight_status_message(learning.get("message", "Video recognition is not available for this job yet."))
+        if video.get("available") and video.get("message"):
+            summary += " " + self._flight_status_message(video["message"])
+        self.learning_text.set(summary + f" {learning.get('examples', 0)} optional local examples.")
+        self._paint_flight_rows()
+
+    def _flight_status_message(self, value):
+        text = str(value).strip()
+        if len(text) <= 160 and "\n" not in text and "\r" not in text:
+            return text
+        # Diagnostics must remain accessible without expanding this fixed header
+        # until the timelines and results disappear below the window.
+        self._log_warning("Flight understanding details: " + text)
+        first_line = text.splitlines()[0].strip()
+        brief = re.split(r"(?<=[.!?])\s+", first_line, maxsplit=1)[0]
+        if len(brief) > 160:
+            brief = brief[:157].rstrip() + "…"
+        return brief + " See Activity for details."
+
+    @staticmethod
+    def _plain_text(value):
+        if value is None:
+            return ""
+        if isinstance(value, list):
+            return "; ".join(SeshApp._plain_text(item) for item in value)
+        if isinstance(value, dict):
+            return "; ".join(f"{key}: {SeshApp._plain_text(item)}" for key, item in value.items())
+        return str(value)
+
+    @staticmethod
+    def _event_summary(event):
+        method = (event.get("trick_method") or event.get("method") or
+                  (event.get("flight_method", "") if not event.get("trick_label") else ""))
+        status = event.get("trick_status") or event.get("status", "")
+        confirmed = event.get("flight_method") == "user-confirmed" or method == "user-confirmed" or status == "confirmed"
+        label = ((event.get("flight_label") if confirmed else None) or event.get("trick_label") or
+                 event.get("label") or event.get("flight_label") or "Motion estimate")
+        state = ("Confirmed" if confirmed else "Uncertain" if status == "uncertain" or
+                 str(label).lower() in ("uncertain", "unknown", "uncertain motion", "unmeasured interval") else "Estimate")
+        descriptions = []
+        model = event.get("trick_model") or event.get("model")
+        if confirmed:
+            descriptions.append("User confirmation")
+        elif method == "online-pretrained video model":
+            descriptions.append("Online-trained video" + (f" · {model}" if model else ""))
+        elif method:
+            descriptions.append(str(method))
+            if model:
+                descriptions.append("Video model context · " + str(model))
+        elif model:
+            descriptions.append("Video model context · " + str(model))
+        elif event.get("trick_label"):
+            descriptions.append("Recognition estimate")
+        for key in ("trick_evidence", "evidence", "reason", "flight_reason"):
+            text = SeshApp._plain_text(event.get(key))
+            if text and text not in descriptions:
+                descriptions.append(text)
+        scene = event.get("scene") or event.get("scene_context")
+        if isinstance(scene, dict) and scene.get("label") in ("woodland", "park or open grass", "cultivated field", "sky", "built surroundings", "water"):
+            descriptions.append("Scene estimate: " + scene["label"])
+        raw_label = event.get("trick_raw_label") or event.get("raw_label")
+        if not confirmed and raw_label and raw_label != label:
+            descriptions.append("Video model originally reported: " + str(raw_label))
+        for key in ("trick_checks", "checks"):
+            checks = SeshApp._plain_text(event.get(key))
+            if checks and "Checks: " + checks not in descriptions:
+                descriptions.append("Checks: " + checks)
+        return str(label), state, "; ".join(descriptions)
+
+    def _paint_flight_rows(self):
+        if not hasattr(self, "flight_table"):
+            return
+        selected = self._selected_flight_event()
+        selected_key = self._flight_event_key(*selected) if selected else None
+        self.flight_table.delete(*self.flight_table.get_children())
+        self._flight_rows = []
+        chosen_filter = self.flight_filter_value.get()
+        for source in self._flight_data.get("sources", []):
+            combined = list(source.get("events", [])) + [{**event, "_video_origin": True} for event in source.get("video_events", [])]
+            seen = set()
+            for event in sorted(combined, key=lambda row: (row.get("start", 0), row.get("end", 0))):
+                label, state, evidence = self._event_summary(event)
+                status = event.get("trick_status") or event.get("status")
+                name = label.lower().replace("_", " ")
+                if chosen_filter == "Possible tricks" and not (status == "suggested" and name in ("roll", "flip", "split-s", "powerloop")):
+                    continue
+                if chosen_filter == "Ordinary flight" and not (state != "Uncertain" and name in
+                        ("ordinary flight", "tree weaving", "dive", "orbit", "moving flight line estimate", "close-pass / weave estimate", "smooth line")):
+                    continue
+                if chosen_filter == "Uncertain" and state != "Uncertain":
+                    continue
+                identity = (event.get("start"), event.get("end"), label, state, event.get("model"), event.get("method"))
+                if identity in seen:
+                    continue
+                seen.add(identity)
+                index = len(self._flight_rows)
+                self._flight_rows.append((source, event))
+                self.flight_table.insert("", "end", iid=str(index), values=(Path(source.get("source", "")).name,
+                    timestamp(event.get("start")), timestamp(event.get("end")), label, state, evidence))
+                if selected_key is not None and self._flight_event_key(source, event) == selected_key:
+                    self.flight_table.selection_set(str(index))
         self._paint_flight_timeline()
+        self._refresh_watch_section()
 
     def _paint_flight_timeline(self):
         if not hasattr(self, "flight_canvas"):
@@ -1447,15 +1626,15 @@ class SeshApp(tk.Tk):
             canvas.create_text(x + 14, 17, text=label, fill=MUTED, anchor="w", font=("Segoe UI", 8))
         longest = max(float(item.get("duration", 1)) for item in sources) or 1
         left, width = 132, max(120, canvas.winfo_width() - 195)
-        row_id = 0
         for index, source in enumerate(sources):
             y = 42 + index * 36
             duration = float(source.get("duration", 0))
             end_x = left + width * duration / longest
             canvas.create_text(14, y + 7, text=Path(source.get("source", "")).name, fill=INK, anchor="w", font=("Segoe UI", 8))
             canvas.create_rectangle(left, y, end_x, y+15, fill=FIELD, outline="")
-            for event in source.get("events", []):
-                label = str(event.get("label", "")).lower()
+            rows = [(row, event) for row, (recording, event) in enumerate(self._flight_rows) if recording is source]
+            for row_id, event in sorted(rows, key=lambda item: bool(item[1].get("_video_origin"))):
+                label = self._event_summary(event)[0].lower()
                 color = palette["Idle / arrival"] if any(word in label for word in ("idle", "arrival", "ground", "landing", "crash")) else \
                         palette["Rotation"] if any(word in label for word in ("rotat", "flip", "roll", "loop", "split")) else \
                         palette["Close pass"] if any(word in label for word in ("weav", "pass", "proxim")) else palette["Flight"]
@@ -1463,7 +1642,6 @@ class SeshApp(tk.Tk):
                 x1 = left + width * min(duration, float(event.get("end", 0))) / longest
                 rect = canvas.create_rectangle(x0, y, max(x0+1, x1), y+15, fill=color, outline=SURFACE, width=1)
                 canvas.tag_bind(rect, "<Button-1>", lambda _, row=row_id: self._select_flight_event(row))
-                row_id += 1
             canvas.create_text(end_x+8, y+7, text=timestamp(duration), fill=MUTED, anchor="w", font=("Segoe UI", 8))
 
     def _select_flight_event(self, index):
@@ -1471,17 +1649,54 @@ class SeshApp(tk.Tk):
         if 0 <= index < len(rows):
             self.flight_table.selection_set(rows[index])
             self.flight_table.see(rows[index])
+            self._refresh_watch_section()
+
+    @staticmethod
+    def _flight_event_key(source, event):
+        return (source.get("source"), source.get("identity"), event.get("start"), event.get("end"),
+                event.get("label"), event.get("trick_label"), event.get("method"), event.get("trick_method"))
+
+    def _selected_flight_event(self):
+        selected = self.flight_table.selection()
+        if not selected:
+            return None
+        try:
+            index = int(selected[0])
+        except (TypeError, ValueError):
+            return None
+        return self._flight_rows[index] if 0 <= index < len(self._flight_rows) else None
+
+    def _refresh_watch_section(self):
+        if not hasattr(self, "watch_section_button"):
+            return
+        available = bool(self.job_dir and self._selected_flight_event() is not None
+                         and (self.process is None or self.mapping_only))
+        self.watch_section_button.configure(state="normal" if available else "disabled")
+
+    def _watch_flight_section(self):
+        selected = self._selected_flight_event()
+        if not self.job_dir or not selected or (self.process is not None and not self.mapping_only):
+            return
+        source, event = selected
+        try:
+            from .source_review import play_section
+            result = play_section(source.get("source", ""), event.get("start"), event.get("end"),
+                                  source_duration=source.get("duration"), context=2.0, app_dir=self.app_dir)
+        except (ValueError, OSError, RuntimeError) as exc:
+            messagebox.showerror("Could not watch this section", str(exc), parent=self)
+            return
+        self.detail_text.set(f"Watching {Path(result['source']).name} · {timestamp(result['start'])}–{timestamp(result['end'])} with entry and exit context.")
 
     def _show_flight_event(self, _event=None):
         selected = self.flight_table.selection()
         if not selected:
             return
-        index = self.flight_table.index(selected[0])
-        events = [(source, event) for source in self._flight_data.get("sources", []) for event in source.get("events", [])]
-        if 0 <= index < len(events):
-            source, event = events[index]
+        index = int(selected[0])
+        if 0 <= index < len(self._flight_rows):
+            source, event = self._flight_rows[index]
+            label, state, evidence = self._event_summary(event)
             body = f"{Path(source.get('source', '')).name} · {timestamp(event.get('start'))}–{timestamp(event.get('end'))}\n\n" \
-                   f"{event.get('label', 'Estimated event')}\n{event.get('reason', '')}\n\nMethod: {event.get('method', 'unknown')}"
+                   f"{label} · {state}\n\n{evidence}"
             messagebox.showinfo("Flight event", body, parent=self)
 
     def _set_choice(self, choice):
@@ -1564,6 +1779,8 @@ class SeshApp(tk.Tk):
         for button in (self.keep_button, self.exclude_button, self.reset_button, self.source_button, self.teach_button):
             button.configure(state="normal" if editable else "disabled")
         job_editable = bool(self.job_dir and not busy)
+        self.map_button.configure(state="normal" if job_editable else "disabled")
+        self._refresh_watch_section()
         self.regenerate_button.configure(state="normal" if job_editable else "disabled")
         self.range_button.configure(state="normal" if job_editable and (self.job_dir / "sources.json").is_file() else "disabled")
         paths = {}
@@ -1646,7 +1863,7 @@ class SeshApp(tk.Tk):
 
     def _close(self):
         if self.process:
-            if messagebox.askyesno("Render in progress", "Cancel at the next safe boundary and close? Completed work will be kept.", parent=self):
+            if messagebox.askyesno("Analysis in progress" if self.mapping_only else "Render in progress", "Cancel at the next safe boundary and close? Completed work will be kept.", parent=self):
                 self.closing = True
                 self._cancel()
         else:

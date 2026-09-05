@@ -30,6 +30,8 @@ htmlcov/
 !/tools/Real-ESRGAN-ncnn-LICENSE.txt
 !/tools/Video2X-LICENSE.txt
 !/tools/ai-license-notices/
+!/tools/video-python-dependencies.json
+!/tools/video-license-notices/
 
 # Model checkpoints are downloaded and verified by optional setup.
 /models/*
@@ -45,6 +47,11 @@ htmlcov/
 !/models/places365/Places365-MIT-LICENSE.txt
 !/models/places365/Torchvision-BSD-LICENSE.txt
 !/models/places365/MODEL-LICENSE.md
+!/models/qwen3-vl-2b/
+/models/qwen3-vl-2b/*
+!/models/qwen3-vl-2b/manifest.json
+!/models/qwen3-vl-2b/LICENSE.txt
+!/models/qwen3-vl-2b/MODEL-NOTES.md
 
 # Local credentials, editor files and temporary downloads.
 .env

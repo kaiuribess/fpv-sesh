@@ -127,6 +127,19 @@ for line in Path('requirements-ai-lock.txt').read_text().splitlines():
         continue
     name, wanted = line.split()[0].split('==')
     pins[re.sub(r'[-_.]+','-',name.lower())] = wanted
+installed = {re.sub(r'[-_.]+','-',d.metadata['Name'].lower()) for d in distributions()}
+video_lock = Path('requirements-video-lock.txt')
+if video_lock.is_file():
+    video_pins = {}
+    for line in video_lock.read_text().splitlines():
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        name, wanted = line.split()[0].split('==')
+        video_pins[re.sub(r'[-_.]+','-',name.lower())] = wanted
+    if (set(video_pins) - set(pins)) & installed:
+        if any(name in pins and pins[name] != wanted for name, wanted in video_pins.items()):
+            raise SystemExit('Optional video lock conflicts with the existing AI runtime')
+        pins.update(video_pins)
 bad = []
 for name,wanted in pins.items():
     try:

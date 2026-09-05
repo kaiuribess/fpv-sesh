@@ -1,0 +1,13 @@
+# Qwen3-VL-2B-Instruct
+
+Official model by the Qwen team, Alibaba Cloud. The model is released under Apache-2.0, as identified by its [publisher model card](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct). The accompanying `LICENSE.txt` is copied without modification from the [official Qwen3-VL repository](https://github.com/QwenLM/Qwen3-VL); its exact revision, URL and checksum are recorded in `manifest.json`.
+
+This is an existing internet-pretrained general video-language model. FPV Sesh did not train this checkpoint, scrape drone videos, or fine-tune it on the user's footage. It can interpret sampled video sequences without requiring the user to first perform or label tricks. It has no established FPV freestyle trick accuracy, and its suggestions need visual and motion evidence before they can be treated as useful labels.
+
+The pinned checkpoint revision is `89644892e4d85e24eaac8bacfd4f463576704203`. Its single BF16 safetensors file contains 2,127,532,032 parameters, occupies 4,255,140,312 bytes, and has publisher-provided SHA256 `7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0`. Text/configuration files were verified against their Git blob identities before SHA256 values were recorded. Model weights and downloaded tokenizer files are excluded from the project Git repository and can be restored with `setup-video.ps1`.
+
+The optional runtime extends `.venv-ai` with the exact packages in `requirements-video-lock.txt`. It preserves every package version in the original AI lock, including PyTorch 2.9.1+cu128. Torchvision 0.24.1+cu128 comes from the official PyTorch index; Transformers 4.57.6 and supporting wheels come from PyPI. All installation wheels are hash-locked. Supporting package licenses are in `tools/video-license-notices` with provenance and checksums in `tools/video-python-dependencies.json`.
+
+Loading uses safetensors, local files, native Transformers classes and `trust_remote_code=False`. Video decoding uses the application's local decoder. No cloud endpoint, account, API key, flash-attn build or remote Python model code is required. Short, bounded batches and PyTorch SDPA keep memory use practical; peak memory and inference speed depend on video sampling and must be measured on the current GPU.
+
+Scene recognition, video interpretation and motion measurements are separate evidence sources. A visible bank or a camera looking at the sky does not prove a flip. A brief rotation does not prove a full powerloop, split-S or clean recovery. Blurred, incomplete or conflicting evidence should stay uncertain, and ordinary flight should remain an ordinary flight label.

@@ -102,6 +102,36 @@ class FlightMapTests(unittest.TestCase):
         self.assertIn("nearest neighbors", candidate["flight_method"])
         self.assertLess(candidate["flight_confidence"], 1)
 
+    def test_candidate_preserves_measured_rotation_provenance_without_changing_edit(self):
+        a = analysis()
+        observation = {"start": 0, "end": 3, "label": "roll", "status": "suggested", "raw_label": "ordinary flight",
+                       "model": "Qwen3-VL-2B-Instruct", "method": "measured image rotation with online-pretrained video context",
+                       "evidence": "Feature tracking supports a possible roll, not verified drone attitude.",
+                       "checks": ["The video model did not independently identify the roll"]}
+        a["video_events"] = [observation]
+        candidate = {"id": "same-cut", "source": a["source"], "start": 0, "end": 3, "score": 85, "selected": True,
+                     "source_frame_start": 0, "source_frame_end": 180}
+        original = copy.deepcopy(candidate)
+        flightmap.annotate_candidates([candidate], [a], self.cache / "learning")
+        for key, value in original.items():
+            self.assertEqual(candidate[key], value)
+        self.assertEqual(candidate["trick_method"], observation["method"])
+        self.assertEqual(candidate["trick_model"], observation["model"])
+        self.assertEqual(candidate["trick_raw_label"], "ordinary flight")
+        self.assertEqual(candidate["trick_checks"], observation["checks"])
+        self.assertIsNot(candidate["trick_checks"], observation["checks"])
+        # A reduced overlap estimate has no complete method/model record. It
+        # must not inherit the previous full-window provenance or assert Qwen
+        # independently supplied a movement-derived suggestion.
+        candidate.update(start=.5, end=2.5)
+        flightmap.annotate_candidates([candidate], [a], self.cache / "learning")
+        self.assertEqual(candidate["trick_status"], "uncertain")
+        self.assertEqual(candidate["trick_method"], "video-section estimate")
+        self.assertNotIn("trick_model", candidate)
+        self.assertNotIn("trick_raw_label", candidate)
+        self.assertNotIn("trick_checks", candidate)
+        self.assertIn("whole observation is not inside this cut", candidate["trick_evidence"])
+
     def test_holdout_removes_all_examples_from_held_out_flight(self):
         examples = [{"source_identity": source, "label": "turn", "features": [value]*8}
                     for source, value in [("a", .1), ("a", .12), ("b", .11)]]
