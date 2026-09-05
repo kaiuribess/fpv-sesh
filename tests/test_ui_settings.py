@@ -450,6 +450,54 @@ class UiSettingsTests(unittest.TestCase):
         self.assertIn("roll · Confirmed", confirmed)
         self.assertIn("User confirmation", confirmed)
 
+    def test_overlapping_motion_and_video_use_separate_visible_clickable_bands(self):
+        sources = [{"source": str(self.source) if index == 0 else f"recording-{index}.mp4", "duration": 30,
+                    "events": [{"start": 2, "end": 5, "label": "rotation burst estimate", "method": "motion heuristic"},
+                               {"start": 5, "end": 7, "label": "close-pass / weave estimate", "method": "motion heuristic"}],
+                    "video_events": [{"start": 0, "end": 8, "label": "ordinary flight", "status": "suggested",
+                                      "method": "online-pretrained video model"},
+                                     {"start": 8, "end": 12, "label": "uncertain", "status": "uncertain",
+                                      "method": "online-pretrained video model"}]} for index in range(3)]
+        write_json(self.job / "flight-map.json", {"sources": sources, "learning": {"video_model": {
+            "available": True, "name": "Qwen3-VL-2B-Instruct", "mode": "auto", "windows_analyzed": 83,
+            "coverage_seconds": 567.467, "message": "Named tricks remain estimates."}}})
+        self.app._load_flight_map(force=True)
+        self.app.notebook.select(self.app._pages["Flight map"])
+        self.app.update()
+        canvas = self.app.flight_canvas
+        motion_ids = canvas.find_withtag("motion-event")
+        video_ids = canvas.find_withtag("video-event")
+        self.assertEqual((len(motion_ids), len(video_ids)), (6, 6))
+        self.assertNotEqual(canvas.itemcget(video_ids[1], "fill"), canvas.itemcget(video_ids[0], "fill"))
+        video_rect = canvas.coords(video_ids[0])
+        for motion_id in motion_ids[:2]:
+            motion_rect = canvas.coords(motion_id)
+            self.assertLess(motion_rect[3], video_rect[1])
+            self.assertLess(video_rect[0], motion_rect[2])
+            self.assertGreater(video_rect[2], motion_rect[0])
+            self.assertNotEqual(canvas.itemcget(motion_id, "fill"), canvas.itemcget(video_ids[0], "fill"))
+            x, y = (motion_rect[0]+motion_rect[2])/2, (motion_rect[1]+motion_rect[3])/2
+            self.assertNotIn(video_ids[0], canvas.find_overlapping(x, y, x, y))
+        for item_id, expected in ((motion_ids[0], "rotation burst estimate"), (video_ids[0], "ordinary flight"),
+                                  (video_ids[1], "uncertain")):
+            x0, y0, x1, y1 = canvas.coords(item_id)
+            x, y = int((x0+x1)/2), int((y0+y1)/2)
+            canvas.event_generate("<Motion>", x=x, y=y)
+            canvas.event_generate("<Button-1>", x=x, y=y)
+            self.app.update()
+            source, event = self.app._selected_flight_event()
+            self.assertEqual(source["source"], str(self.source))
+            self.assertEqual(event["label"], expected)
+        legend = [canvas.itemcget(item, "text") for item in canvas.find_all() if canvas.type(item) == "text"]
+        self.assertIn("Upper band: motion estimates · Lower band: video observations", legend)
+        self.assertIn("Uncertain", legend)
+        uncertain_legend = next(item for item in canvas.find_all()
+                                if canvas.type(item) == "text" and canvas.itemcget(item, "text") == "Uncertain")
+        self.assertLessEqual(canvas.bbox(uncertain_legend)[2], canvas.winfo_width())
+        self.assertGreaterEqual(self.app.flight_table.winfo_height(), 60)
+        self.assertLessEqual(self.app.flight_table.winfo_y()+self.app.flight_table.winfo_height(),
+                             self.app._pages["Flight map"].winfo_height())
+
     def test_measured_rotation_suggestion_keeps_model_miss_and_method_distinct(self):
         method = "measured image rotation with online-pretrained video context"
         checks = ["The video model did not independently identify the roll; movement evidence supplies this suggestion"]

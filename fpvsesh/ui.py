@@ -1619,30 +1619,39 @@ class SeshApp(tk.Tk):
                                fill=MUTED, font=("Segoe UI", 10), anchor="w")
             return
         canvas.configure(height=50 + 36 * len(sources))
-        palette = {"Flight": "#78a99a", "Rotation": LIME, "Close pass": "#d7ae74", "Idle / arrival": "#64716b"}
+        palette = {"Flight": "#78a99a", "Rotation": LIME, "Close pass": "#d7ae74", "Idle / arrival": "#64716b",
+                   "Uncertain": "#aab0b6"}
         for index, (label, color) in enumerate(palette.items()):
             x = 16 + index * 142
             canvas.create_rectangle(x, 13, x + 7, 20, fill=color, outline="")
             canvas.create_text(x + 14, 17, text=label, fill=MUTED, anchor="w", font=("Segoe UI", 8))
+        canvas.create_text(16, 32, text="Upper band: motion estimates · Lower band: video observations",
+                           fill=MUTED, anchor="w", font=("Segoe UI", 8))
         longest = max(float(item.get("duration", 1)) for item in sources) or 1
         left, width = 132, max(120, canvas.winfo_width() - 195)
         for index, source in enumerate(sources):
             y = 42 + index * 36
             duration = float(source.get("duration", 0))
             end_x = left + width * duration / longest
-            canvas.create_text(14, y + 7, text=Path(source.get("source", "")).name, fill=INK, anchor="w", font=("Segoe UI", 8))
-            canvas.create_rectangle(left, y, end_x, y+15, fill=FIELD, outline="")
+            canvas.create_text(14, y + 9, text=Path(source.get("source", "")).name, fill=INK, anchor="w", font=("Segoe UI", 8))
+            for offset in (0, 11):
+                canvas.create_rectangle(left, y+offset, end_x, y+offset+8, fill=FIELD, outline="")
             rows = [(row, event) for row, (recording, event) in enumerate(self._flight_rows) if recording is source]
             for row_id, event in sorted(rows, key=lambda item: bool(item[1].get("_video_origin"))):
-                label = self._event_summary(event)[0].lower()
-                color = palette["Idle / arrival"] if any(word in label for word in ("idle", "arrival", "ground", "landing", "crash")) else \
+                label, state, _ = self._event_summary(event)
+                label = label.lower()
+                color = palette["Uncertain"] if state == "Uncertain" else \
+                        palette["Idle / arrival"] if any(word in label for word in ("idle", "arrival", "ground", "landing", "crash")) else \
                         palette["Rotation"] if any(word in label for word in ("rotat", "flip", "roll", "loop", "split")) else \
                         palette["Close pass"] if any(word in label for word in ("weav", "pass", "proxim")) else palette["Flight"]
                 x0 = left + width * max(0, float(event.get("start", 0))) / longest
                 x1 = left + width * min(duration, float(event.get("end", 0))) / longest
-                rect = canvas.create_rectangle(x0, y, max(x0+1, x1), y+15, fill=color, outline=SURFACE, width=1)
+                band = "video-event" if event.get("_video_origin") else "motion-event"
+                band_y = y + (11 if event.get("_video_origin") else 0)
+                rect = canvas.create_rectangle(x0, band_y, max(x0+1, x1), band_y+8,
+                                               fill=color, outline=SURFACE, width=1, tags=(band, f"flight-row-{row_id}"))
                 canvas.tag_bind(rect, "<Button-1>", lambda _, row=row_id: self._select_flight_event(row))
-            canvas.create_text(end_x+8, y+7, text=timestamp(duration), fill=MUTED, anchor="w", font=("Segoe UI", 8))
+            canvas.create_text(end_x+8, y+9, text=timestamp(duration), fill=MUTED, anchor="w", font=("Segoe UI", 8))
 
     def _select_flight_event(self, index):
         rows = self.flight_table.get_children()
